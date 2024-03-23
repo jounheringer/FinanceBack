@@ -5,50 +5,51 @@ import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 
-object Usuarios {
-    const val TABELA_NOME = "usuarios"
-    const val COLUNA_ID = "ID"
-    const val COLUNA_NOME = "Nome"
-    const val COLUNA_EMAIL = "Email"
-    const val COLUNA_SENHA = "Senha"
-}
-class Banco(context: Context) : SQLiteOpenHelper(context, BANCO_NOME, null, BANCO_VERSAO) {
-    object NotasFiscais {
-        const val TABELA_NOME = "notas_fiscais"
-        const val COLUNA_ID = "ID"
-        const val COLUNA_USUARIO = "UsuarioID"
-        const val COLUNA_VALOR = "Valor"
-        const val COLUNA_NOME = "Nome"
-        const val COLUNA_DATA = "DataStamp"
-        const val COLUNA_LUCRO = "Lucro"
+class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
+    object Income {
+        const val TABLE_NAME = "income"
+        const val COLUMN_ID = "ID"
+        const val COLUMN_USER = "UserID"
+        const val COLUMN_VALUE = "Value"
+        const val COLUMN_NAME = "Name"
+        const val COLUMN_DATESTAMP = "DateStamp"
+        const val COLUMN_PROFIT = "Profit"
+    }
+
+    object Users {
+        const val TABLE_NAME = "users"
+        const val COLUMN_ID = "ID"
+        const val COLUMN_NAME = "Name"
+        const val COLUMN_EMAIL = "Email"
+        const val COLUMN_PASSWORD = "Password"
     }
     companion object {
-        const val BANCO_NOME = "FINANCEBACK"
-        const val BANCO_VERSAO = 1
+        const val DATABASE_NAME = "FINANCEBACK"
+        const val DATABASE_VERSION = 1
     }
 
-    private val CRIAR_NOTAS_FISCAIS =
-        "CREATE TABLE IF NOT EXISTS ${NotasFiscais.TABELA_NOME}(" +
-                "${NotasFiscais.COLUNA_ID} INTEGER PRIMARY KEY," +
-                "${NotasFiscais.COLUNA_USUARIO} INTEGER," +
-                "${NotasFiscais.COLUNA_VALOR} REAL DEFAULT NULL," +
-                "${NotasFiscais.COLUNA_NOME} TEXT DEFAULT NULL," +
-                "${NotasFiscais.COLUNA_DATA} INTEGER DEFAULT NULL," +
-                "${NotasFiscais.COLUNA_LUCRO} BOOLEAN DEFAULT FALSE," +
-                "FOREIGN KEY (${NotasFiscais.COLUNA_USUARIO})" +
-                "REFERENCES ${Usuarios.TABELA_NOME}(${Usuarios.COLUNA_ID}))"
+    private val CREATE_INCOME =
+        "CREATE TABLE IF NOT EXISTS ${Income.TABLE_NAME}(" +
+                "${Income.COLUMN_ID} INTEGER PRIMARY KEY," +
+                "${Income.COLUMN_USER} INTEGER," +
+                "${Income.COLUMN_VALUE} REAL DEFAULT NULL," +
+                "${Income.COLUMN_NAME} TEXT DEFAULT NULL," +
+                "${Income.COLUMN_DATESTAMP} INTEGER DEFAULT NULL," +
+                "${Income.COLUMN_PROFIT} BOOLEAN DEFAULT FALSE," +
+                "FOREIGN KEY (${Income.COLUMN_USER})" +
+                "REFERENCES ${Users.TABLE_NAME}(${Users.COLUMN_ID}))"
 
-    private val CRIAR_USUARIOS =
-        "CREATE TABLE IF NOT EXISTS ${Usuarios.TABELA_NOME}(" +
-                "${Usuarios.COLUNA_ID} INTEGER PRIMARY KEY," +
-                "${Usuarios.COLUNA_NOME} TEXT DEFAULT NULL," +
-                "${Usuarios.COLUNA_EMAIL} TEXT DEFAULT NULL," +
-                "${Usuarios.COLUNA_SENHA} TEXT DEFAULT NULL)"
+    private val CREATE_USERS =
+        "CREATE TABLE IF NOT EXISTS ${Users.TABLE_NAME}(" +
+                "${Users.COLUMN_ID} INTEGER PRIMARY KEY," +
+                "${Users.COLUMN_NAME} TEXT DEFAULT NULL," +
+                "${Users.COLUMN_EMAIL} TEXT DEFAULT NULL," +
+                "${Users.COLUMN_PASSWORD} TEXT DEFAULT NULL)"
 
     override fun onCreate(db: SQLiteDatabase) {
         try {
-            db.execSQL(CRIAR_USUARIOS)
-            db.execSQL(CRIAR_NOTAS_FISCAIS)
+            db.execSQL(CREATE_USERS)
+            db.execSQL(CREATE_INCOME)
         }catch (e: SQLException){
             throw e
         }
