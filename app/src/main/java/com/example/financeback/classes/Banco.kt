@@ -6,7 +6,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
-    object Income {
+    object INCOME {
         const val TABLE_NAME = "income"
         const val COLUMN_ID = "ID"
         const val COLUMN_USER = "UserID"
@@ -16,7 +16,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COLUMN_PROFIT = "Profit"
     }
 
-    object Users {
+    object USERS {
         const val TABLE_NAME = "users"
         const val COLUMN_ID = "ID"
         const val COLUMN_NAME = "Name"
@@ -29,22 +29,22 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     }
 
     private val CREATE_INCOME =
-        "CREATE TABLE IF NOT EXISTS ${Income.TABLE_NAME}(" +
-                "${Income.COLUMN_ID} INTEGER PRIMARY KEY," +
-                "${Income.COLUMN_USER} INTEGER," +
-                "${Income.COLUMN_VALUE} REAL DEFAULT NULL," +
-                "${Income.COLUMN_NAME} TEXT DEFAULT NULL," +
-                "${Income.COLUMN_DATESTAMP} INTEGER DEFAULT NULL," +
-                "${Income.COLUMN_PROFIT} BOOLEAN DEFAULT FALSE," +
-                "FOREIGN KEY (${Income.COLUMN_USER})" +
-                "REFERENCES ${Users.TABLE_NAME}(${Users.COLUMN_ID}))"
+        "CREATE TABLE IF NOT EXISTS ${INCOME.TABLE_NAME}(" +
+                "${INCOME.COLUMN_ID} INTEGER PRIMARY KEY," +
+                "${INCOME.COLUMN_USER} INTEGER," +
+                "${INCOME.COLUMN_VALUE} REAL DEFAULT NULL," +
+                "${INCOME.COLUMN_NAME} TEXT DEFAULT NULL," +
+                "${INCOME.COLUMN_DATESTAMP} INTEGER DEFAULT NULL," +
+                "${INCOME.COLUMN_PROFIT} BOOLEAN DEFAULT FALSE," +
+                "FOREIGN KEY (${INCOME.COLUMN_USER})" +
+                "REFERENCES ${USERS.TABLE_NAME}(${USERS.COLUMN_ID}))"
 
     private val CREATE_USERS =
-        "CREATE TABLE IF NOT EXISTS ${Users.TABLE_NAME}(" +
-                "${Users.COLUMN_ID} INTEGER PRIMARY KEY," +
-                "${Users.COLUMN_NAME} TEXT DEFAULT NULL," +
-                "${Users.COLUMN_EMAIL} TEXT DEFAULT NULL," +
-                "${Users.COLUMN_PASSWORD} TEXT DEFAULT NULL)"
+        "CREATE TABLE IF NOT EXISTS ${USERS.TABLE_NAME}(" +
+                "${USERS.COLUMN_ID} INTEGER PRIMARY KEY," +
+                "${USERS.COLUMN_NAME} TEXT DEFAULT NULL," +
+                "${USERS.COLUMN_EMAIL} TEXT DEFAULT NULL," +
+                "${USERS.COLUMN_PASSWORD} TEXT DEFAULT NULL)"
 
     override fun onCreate(db: SQLiteDatabase) {
         try {
