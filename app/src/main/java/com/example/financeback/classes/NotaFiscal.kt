@@ -11,12 +11,12 @@ import java.time.format.DateTimeFormatter
 class Income(userID: Int? = null) {
     private var userID: Int? = if (userID == null) userID else null
     private var incomeID: Int? = null
-    var value: Double? = null
+    var value: Float? = null
     var name: String? = null
     var dateStamp: Long? = null
     var profit: Boolean = false
 
-    fun saveIncome(context: Context, value: Double, name: String, profit: Boolean) {
+    fun saveIncome(context: Context, value: Float, name: String, dateStamp: String, profit: Boolean, description: String): Long? {
 //        Salvar nota com valor X, name X, data x e se for ou nao lucro
         val values = ContentValues().apply {
             put(DatabaseHelper.INCOME.COLUMN_VALUE, value)
@@ -28,7 +28,10 @@ class Income(userID: Int? = null) {
         try {
             val databaseCursor = DatabaseHelper(context).writableDatabase
 
-            databaseCursor?.insert(DatabaseHelper.INCOME.TABLE_NAME, null, values)
+            var row: Long = databaseCursor.insert(DatabaseHelper.INCOME.TABLE_NAME, null, values)
+            if (row.toInt() == -1)
+                return null
+            return row
 
         }catch (e: SQLiteException){
             throw e
@@ -51,7 +54,7 @@ class Income(userID: Int? = null) {
         }
     }
 
-    fun editIncome(context: Context, userID: Int?, incomeID: Int, value: Double, name: String, profit: Boolean){
+    fun editIncome(context: Context, userID: Int?, incomeID: Int, value: Float, name: String, profit: Boolean){
 //        atualizar dados de uma nota fiscal especifica
         val values = ContentValues().apply {
             put(DatabaseHelper.INCOME.COLUMN_VALUE, value)

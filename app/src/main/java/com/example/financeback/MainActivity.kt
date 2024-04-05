@@ -1,5 +1,6 @@
 package com.example.financeback
 
+import android.app.Activity
 import android.os.Bundle
 import androidx.activity.compose.setContent
 
@@ -16,10 +17,15 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.activity
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -47,6 +53,7 @@ fun FinanceBackScreen(modifier: Modifier = Modifier){
     val navController = rememberNavController()
 
     val items = listOf(Screen.Home, Screen.Income, Screen.Report, Screen.Goal)
+    var screenTitle by remember { mutableStateOf("Bem Vindo") }
 
     Scaffold(
         topBar = { TopAppBar(
@@ -54,7 +61,7 @@ fun FinanceBackScreen(modifier: Modifier = Modifier){
                 containerColor = MaterialTheme.colors.primary,
                 titleContentColor = MaterialTheme.colors.background,
             ),
-            title = { Text("Bem-Vindo") }
+            title = { Text(screenTitle) }
         )
         },
         bottomBar = {
@@ -72,6 +79,8 @@ fun FinanceBackScreen(modifier: Modifier = Modifier){
                         }
                         launchSingleTop = true
                         restoreState = true
+
+                        screenTitle = screen.title
                     } }
                 )
             }
@@ -82,7 +91,7 @@ fun FinanceBackScreen(modifier: Modifier = Modifier){
             composable(Screen.Home.route) { HomeScreen() }
             composable(Screen.Report.route) { ReportScreen() }
             composable(Screen.Goal.route) { GoalScreen() }
-            composable(Screen.Income.route) { IncomeScreen() }
+            composable(Screen.Income.route) { IncomeScreen(context = LocalContext.current) }
         }
     }
 }
