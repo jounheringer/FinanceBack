@@ -22,6 +22,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -30,20 +31,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.financeback.classes.Income
+import com.example.financeback.utils.CurrencyMask
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
-import java.util.TimeZone
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IncomeScreen(modifier:Modifier = Modifier, context: Context) {
-
-
     Column(modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceEvenly) {
@@ -51,8 +49,6 @@ fun IncomeScreen(modifier:Modifier = Modifier, context: Context) {
             horizontalAlignment = Alignment.CenterHorizontally) {
             IncomeInputs(context = context)
         }
-
-
     }
 }
 
@@ -66,7 +62,7 @@ fun IncomeInputs(modifier: Modifier = Modifier
 
     var text by remember { mutableStateOf("") }
     var number by remember { mutableStateOf("") }
-    var dateStamp by remember { mutableStateOf(System.currentTimeMillis().toBrazilianDateFormat())}
+    var dateStamp by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var description by remember { mutableStateOf("") }
     var showDatePicker by remember { mutableStateOf(false) }
     var datePickerState = rememberDatePickerState()
@@ -76,7 +72,7 @@ fun IncomeInputs(modifier: Modifier = Modifier
         DatePickerDialog(onDismissRequest = { showDatePicker = false },
             confirmButton = {
                 Button(onClick = { datePickerState.selectedDateMillis?.let {millis ->
-                    dateStamp = millis.toBrazilianDateFormat()}
+                    dateStamp = millis}
                     showDatePicker = false}) {
                     Text(text = "Selecionar")
                 }
@@ -85,7 +81,8 @@ fun IncomeInputs(modifier: Modifier = Modifier
         }
     }
 
-    TextField(value = text,
+    TextField(keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+        value = text,
         onValueChange = { text = it },
         placeholder = { Text(text = "Item") },
         label = { Text(text = "Produto")},
@@ -93,13 +90,15 @@ fun IncomeInputs(modifier: Modifier = Modifier
 
     TextField(keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         value = number,
-        onValueChange = { number = it },
-        placeholder = { Text(text = "0.0") },
+        onValueChange = {number = if(it.startsWith("0")) ""
+            else it
+        },
+        visualTransformation = CurrencyMask(),
         label = { Text(text = "Valor")},
         modifier = modifier)
 
     TextField(
-        value = dateStamp,
+        value = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(dateStamp),
         onValueChange = { },
         modifier = modifier.onFocusEvent {
                 if (it.isFocused) {
@@ -125,8 +124,8 @@ fun IncomeInputs(modifier: Modifier = Modifier
         onValueChange = { description = it },
         label = { Text(text = "Descrição") },
         modifier = modifier
-            .height(100.dp)
-            .height(48.dp))
+            .height(100.dp),
+        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences))
 
     Column(modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally) {
@@ -142,29 +141,27 @@ fun IncomeInputs(modifier: Modifier = Modifier
 @Composable
 fun SaveIncome(modifier:Modifier = Modifier,
                context:Context, text:String,
-               number:String, dateStamp:String,
+               number:String, dateStamp:Long,
                optionSelected:String,
                description:String){
-    val income = Income()
-
     var missingParams by remember { mutableStateOf(false) }
-    var canSaveIncome by remember { mutableStateOf<Long?>(null) }
-    var missingValues = mutableListOf<String>()
+    var saveIncomeResult by remember { mutableStateOf<Long?>(null) }
+    val missingValues = mutableListOf<String>()
 
     if (text.isEmpty()){ missingValues.add("Produto") }
     if (number.isEmpty()){ missingValues.add("Valor") }
-    if (dateStamp.isEmpty()){ missingValues.add("Produto") }
-    if (optionSelected.isEmpty()){ missingValues.add("Valor") }
+    if (dateStamp == 0L){ missingValues.add("Data") }
+    if (optionSelected.isEmpty()){ missingValues.add("Opcão de nota") }
 
     Button(onClick = { if(missingValues.isNotEmpty())
         missingParams = true
     else
-        canSaveIncome = income.saveIncome(context = context,
-        value = number.toFloat(),
-        name = text,
-        dateStamp = dateStamp,
-        profit = if (optionSelected == "Positivo") true else false,
-        description =  description) }) {
+        saveIncomeResult = saveIncome(context = context,
+            text = text,
+            number = number,
+            dateStamp = dateStamp,
+            optionSelected = optionSelected,
+            description = description) }) {
         Text(text = "Salvar")
     }
 
@@ -193,20 +190,20 @@ fun SaveIncome(modifier:Modifier = Modifier,
         )
     }
 
-    if (canSaveIncome != null) {
+    if (saveIncomeResult != null) {
         AlertDialog(
             title = {
                 Text(text = "Nota fiscal salva")
             },
             text = {
-                Text(text = "Nota fiscal salva Nº${canSaveIncome} com sucesso")
+                Text(text = "Nota fiscal salva Nº${saveIncomeResult} com sucesso")
             },
             onDismissRequest = {
-                canSaveIncome = null},
+                saveIncomeResult = null},
             confirmButton = {
                 TextButton(
                     onClick = {
-                        canSaveIncome = null
+                        saveIncomeResult = null
                     }
                 ) {
                     Text("OK")
@@ -216,20 +213,33 @@ fun SaveIncome(modifier:Modifier = Modifier,
     }
 }
 
-fun Long.toBrazilianDateFormat(
-    pattern: String = "dd/MM/yyyy"
-): String {
-    val date = Date(this)
-    val formatter = SimpleDateFormat(
-        pattern, Locale("pt-br")
-    ).apply {
-        timeZone = TimeZone.getTimeZone("GMT")
+fun saveIncome(context:Context, text:String,
+               number:String, dateStamp:Long,
+               optionSelected:String,
+               description:String): Long?{
+    val income = Income()
+    val intPart = number.dropLast(2).ifEmpty { "0" }
+    val fractionPart = number.takeLast(2).let {
+        if (it.length != 2)
+            List(2 - it.length) { 0 }.joinToString("") + it
+        else it
     }
-    return formatter.format(date)
+    val numValue = "${intPart}.${fractionPart}"
+
+    return income.saveIncome(context = context,
+        value = numValue.toDouble(),
+        name = text,
+        dateStamp = dateStamp,
+        profit = optionSelected == "Positivo",
+        description =  description)
 }
 
 @Preview(showBackground = true)
 @Composable
 fun IncomeScreenPreview() {
     IncomeScreen(context = LocalContext.current)
+}
+
+fun String.addDot() {
+    
 }

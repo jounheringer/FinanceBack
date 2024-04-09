@@ -1,9 +1,9 @@
 package com.example.financeback
 
-import android.app.Activity
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
-
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.BottomNavigation
@@ -25,7 +25,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.activity
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -87,11 +86,12 @@ fun FinanceBackScreen(modifier: Modifier = Modifier){
         }
         }
     ){ innerPadding ->
+        val context = LocalContext.current
         NavHost(navController, startDestination = Screen.Home.route, Modifier.padding(innerPadding)) {
-            composable(Screen.Home.route) { HomeScreen() }
+            composable(Screen.Home.route) { HomeScreen(context = context) }
             composable(Screen.Report.route) { ReportScreen() }
             composable(Screen.Goal.route) { GoalScreen() }
-            composable(Screen.Income.route) { IncomeScreen(context = LocalContext.current) }
+            composable(Screen.Income.route) { IncomeScreen(context = context) }
         }
     }
 }

@@ -25,14 +25,14 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     }
     companion object {
         const val DATABASE_NAME = "FINANCEBACK"
-        const val DATABASE_VERSION = 1
+        const val DATABASE_VERSION = 2
     }
 
     private val CREATE_INCOME =
         "CREATE TABLE IF NOT EXISTS ${INCOME.TABLE_NAME}(" +
                 "${INCOME.COLUMN_ID} INTEGER PRIMARY KEY," +
                 "${INCOME.COLUMN_USER} INTEGER," +
-                "${INCOME.COLUMN_VALUE} REAL DEFAULT NULL," +
+                "${INCOME.COLUMN_VALUE} DECIMAL(10, 2) DEFAULT NULL," +
                 "${INCOME.COLUMN_NAME} TEXT DEFAULT NULL," +
                 "${INCOME.COLUMN_DATESTAMP} INTEGER DEFAULT NULL," +
                 "${INCOME.COLUMN_PROFIT} BOOLEAN DEFAULT FALSE," +
@@ -55,8 +55,14 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         }
     }
 
-    override fun onUpgrade(p0: SQLiteDatabase?, p1: Int, p2: Int) {
-        TODO("Not yet implemented")
+    override fun onUpgrade(db: SQLiteDatabase, p1: Int, p2: Int) {
+        try {
+            db.execSQL("DROP TABLE IF EXISTS ${INCOME.TABLE_NAME}")
+            db.execSQL("DROP TABLE IF EXISTS ${USERS.TABLE_NAME}")
+            onCreate(db)
+        }catch (e: SQLException){
+            throw e
+        }
     }
 
 }
