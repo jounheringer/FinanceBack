@@ -23,7 +23,7 @@ class Income(userID: Int? = null) {
             val databaseCursor = DatabaseHelper(context).writableDatabase
             val orderBy = "${DatabaseHelper.INCOME.COLUMN_DATESTAMP} DESC"
 
-            var rows: Cursor = databaseCursor.query(
+            val rows: Cursor = databaseCursor.query(
                 DatabaseHelper.INCOME.TABLE_NAME,
                 null,
                 null,
@@ -34,7 +34,7 @@ class Income(userID: Int? = null) {
                 limit.toString(),
             )
             var incomesReturn:Map<String, Any>
-            var incomesList = mutableListOf<Map<String, Any>>()
+            val incomesList = mutableListOf<Map<String, Any>>()
             var index:Int = 0
 
             if (rows.moveToFirst()) {
@@ -69,7 +69,7 @@ class Income(userID: Int? = null) {
         try {
             val databaseCursor = DatabaseHelper(context).writableDatabase
 
-            var row: Long = databaseCursor.insert(DatabaseHelper.INCOME.TABLE_NAME, null, values)
+            val row: Long = databaseCursor.insert(DatabaseHelper.INCOME.TABLE_NAME, null, values)
             if (row.toInt() == -1)
                 return null
             return row

@@ -8,9 +8,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -57,19 +57,21 @@ fun FinanceBackScreen(modifier: Modifier = Modifier){
     Scaffold(
         topBar = { TopAppBar(
             colors = topAppBarColors(
-                containerColor = MaterialTheme.colors.primary,
-                titleContentColor = MaterialTheme.colors.background,
+                containerColor = MaterialTheme.colorScheme.primary,
+                titleContentColor = MaterialTheme.colorScheme.background,
             ),
             title = { Text(screenTitle) }
         )
         },
         bottomBar = {
-            BottomNavigation {
+            BottomNavigation(
+                backgroundColor = MaterialTheme.colorScheme.primary
+            ) {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentDestination = navBackStackEntry?.destination
             items.forEach { screen ->
                 BottomNavigationItem(
-                    icon = { Icon(screen.icon, contentDescription = screen.description) },
+                    icon = { Icon(screen.icon, contentDescription = screen.description, tint = MaterialTheme.colorScheme.background) },
                     label = { Text(text = screen.route)},
                     selected = currentDestination?.hierarchy?.any {it.route == Screen.Home.route} == true,
                     onClick = { navController.navigate(screen.route) {
