@@ -25,7 +25,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     }
     companion object {
         const val DATABASE_NAME = "FINANCEBACK"
-        const val DATABASE_VERSION = 2
+        const val DATABASE_VERSION = 5
     }
 
     private val CREATE_INCOME =
