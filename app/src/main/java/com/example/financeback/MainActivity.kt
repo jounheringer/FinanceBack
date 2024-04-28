@@ -1,9 +1,7 @@
 package com.example.financeback
 
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.BottomNavigation
@@ -48,11 +46,11 @@ class MainActivity : AppCompatActivity() {
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FinanceBackScreen(modifier: Modifier = Modifier){
+fun FinanceBackScreen(){
     val navController = rememberNavController()
 
-    val items = listOf(Screen.Home, Screen.Income, Screen.Report, Screen.Goal)
-    var screenTitle by remember { mutableStateOf("Bem Vindo") }
+    val items = listOf(Screen.Home, Screen.Income, Screen.Report)
+    var screenTitle by remember { mutableStateOf(Screen.Home.title) }
 
     Scaffold(
         topBar = { TopAppBar(
@@ -90,10 +88,23 @@ fun FinanceBackScreen(modifier: Modifier = Modifier){
     ){ innerPadding ->
         val context = LocalContext.current
         NavHost(navController, startDestination = Screen.Home.route, Modifier.padding(innerPadding)) {
-            composable(Screen.Home.route) { HomeScreen(context = context) }
-            composable(Screen.Report.route) { ReportScreen() }
-            composable(Screen.Goal.route) { GoalScreen() }
-            composable(Screen.Income.route) { IncomeScreen(context = context) }
+            composable(Screen.Home.route) { HomeScreen(context = context,
+                navigateTo = {navController.navigate(Screen.Income.route)
+                {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    screenTitle = Screen.Income.title}}) }
+            composable(Screen.Report.route) { ReportScreen(context = context,
+                navigateToEdit = {navController.navigate(Screen.Income.route) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    screenTitle = Screen.Income.title} }
+            ) }
+            composable(Screen.Income.route) { IncomeScreen(context = context, ) }
         }
     }
 }

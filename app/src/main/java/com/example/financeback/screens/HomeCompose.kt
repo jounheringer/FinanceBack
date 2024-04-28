@@ -44,53 +44,11 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier, context: Context = LocalContext.current) {
+fun HomeScreen(modifier: Modifier = Modifier, context: Context = LocalContext.current, navigateTo: () -> Unit) {
     Column(modifier.fillMaxHeight(),
         verticalArrangement = Arrangement.SpaceBetween) {
-        Incomes()
+        IncomeStatus(modifier, context, "2024-04")
         RecentIncomes(context = context)
-    }
-}
-
-@Composable
-fun Incomes(modifier: Modifier = Modifier) {
-    val state = rememberScrollState()
-    LaunchedEffect(Unit) { state.animateScrollTo(100)}
-    
-    Row(
-        modifier = modifier
-            .padding(15.dp)
-            .horizontalScroll(rememberScrollState()),
-        verticalAlignment = Alignment.CenterVertically){
-        Column(
-            modifier
-                .background(Color.Gray, shape = RoundedCornerShape(10.dp))
-                .size(200.dp, 100.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = "10.4")
-            Text(text = "Valor Total")
-        }
-        Spacer(modifier = modifier.width(15.dp))
-        Column(
-            modifier
-                .background(Color.Green, shape = RoundedCornerShape(10.dp))
-                .size(200.dp, 100.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = "5.2")
-            Text(text = "Total de lucros")
-        }
-        Spacer(modifier = modifier.width(15.dp))
-        Column(
-            modifier
-                .background(Color.Red, shape = RoundedCornerShape(10.dp))
-                .size(200.dp, 100.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = "-5.2")
-            Text(text = "Total de dispesa")
-        }
     }
 }
 
@@ -98,7 +56,7 @@ fun Incomes(modifier: Modifier = Modifier) {
 fun RecentIncomes(modifier: Modifier = Modifier, context: Context) {
     val state = rememberScrollState()
     val income = Income()
-    val recentIncomes = income.getIncomes(context, 5)
+    val recentIncomes = income.getIncomes(context, limit = 5, offset = 0, filter = "Total", timeStamp = "2024-04")
     LaunchedEffect(Unit) { state.animateScrollTo(100)}
 
     Column(
@@ -170,8 +128,8 @@ fun RecentIncomes(modifier: Modifier = Modifier, context: Context) {
     }
 }
 
-@Preview
-@Composable
-fun HomeScreenPreview() {
-    HomeScreen()
-}
+//@Preview
+//@Composable
+//fun HomeScreenPreview() {
+//    HomeScreen()
+//}

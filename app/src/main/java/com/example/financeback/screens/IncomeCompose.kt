@@ -65,7 +65,7 @@ fun IncomeInputs(modifier: Modifier = Modifier
     var dateStamp by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var description by remember { mutableStateOf("") }
     var showDatePicker by remember { mutableStateOf(false) }
-    var datePickerState = rememberDatePickerState()
+    val datePickerState = rememberDatePickerState()
     var optionSelected by remember { mutableStateOf(incomeOptions[0]) }
 
     if (showDatePicker) {
