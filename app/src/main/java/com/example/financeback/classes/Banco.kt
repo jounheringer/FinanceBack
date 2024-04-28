@@ -14,6 +14,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COLUMN_NAME = "Name"
         const val COLUMN_DATESTAMP = "DateStamp"
         const val COLUMN_PROFIT = "Profit"
+        const val COLUMN_DESCRIPTION = "Description"
     }
 
     object USERS {
@@ -36,6 +37,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 "${INCOME.COLUMN_NAME} TEXT DEFAULT NULL," +
                 "${INCOME.COLUMN_DATESTAMP} INTEGER DEFAULT NULL," +
                 "${INCOME.COLUMN_PROFIT} BOOLEAN DEFAULT FALSE," +
+                "${INCOME.COLUMN_DESCRIPTION} TEXT DEFAULT NULL," +
                 "FOREIGN KEY (${INCOME.COLUMN_USER})" +
                 "REFERENCES ${USERS.TABLE_NAME}(${USERS.COLUMN_ID}))"
 
