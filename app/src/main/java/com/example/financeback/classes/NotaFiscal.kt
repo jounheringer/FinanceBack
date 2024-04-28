@@ -23,7 +23,7 @@ class Income(userID: Int? = null) {
                    offset:Int,
                    filter: String,
                    timeStamp: String,
-                   orderByFlow: String = "DESC"): List<Map<String, Any>>?{ /*TODO adicionar condicao para pegar info de um so usuario*/
+                   orderByFlow: String = "DESC"): List<Map<String, Any>> { /*TODO adicionar condicao para pegar info de um so usuario*/
         try {
             val limitAndOffset = "${offset},${limit}"
             val databaseCursor = DatabaseHelper(context).writableDatabase
@@ -77,6 +77,7 @@ class Income(userID: Int? = null) {
                         incomesReturn["Name"] = rows.getString(rows.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_NAME))
                         incomesReturn["Date"] = rows.getLong(rows.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_DATESTAMP))
                         incomesReturn["Profit"] = (rows.getInt(rows.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_PROFIT)) == 1)
+                        incomesReturn["Description"] = rows.getString(rows.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_DESCRIPTION))
                         incomesList.add(incomesReturn)
                     }while(cursor.moveToNext())
                 }
@@ -160,6 +161,7 @@ class Income(userID: Int? = null) {
             put(DatabaseHelper.INCOME.COLUMN_NAME, name)
             put(DatabaseHelper.INCOME.COLUMN_DATESTAMP, System.currentTimeMillis())
             put(DatabaseHelper.INCOME.COLUMN_PROFIT, profit)
+            put(DatabaseHelper.INCOME.COLUMN_DESCRIPTION, description)
         }
 
         try {

@@ -140,10 +140,10 @@ fun IncomeInputs(modifier: Modifier = Modifier
 
 @Composable
 fun SaveIncome(modifier:Modifier = Modifier,
-               context:Context, text:String,
-               number:String, dateStamp:Long,
-               optionSelected:String,
-               description:String){
+               context:Context, text: String,
+               number:String, dateStamp: Long,
+               optionSelected: String,
+               description: String){
     var missingParams by remember { mutableStateOf(false) }
     var saveIncomeResult by remember { mutableStateOf<Long?>(null) }
     val missingValues = mutableListOf<String>()
@@ -213,10 +213,10 @@ fun SaveIncome(modifier:Modifier = Modifier,
     }
 }
 
-fun saveIncome(context:Context, text:String,
-               number:String, dateStamp:Long,
-               optionSelected:String,
-               description:String): Long?{
+fun saveIncome(context:Context, text: String,
+               number:String, dateStamp: Long,
+               optionSelected: String,
+               description: String): Long?{
     val income = Income()
     val intPart = number.dropLast(2).ifEmpty { "0" }
     val fractionPart = number.takeLast(2).let {

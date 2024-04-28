@@ -99,7 +99,7 @@ fun RecentIncomes(modifier: Modifier = Modifier, context: Context) {
                 if(expand){
                     Column(modifier.padding(5.dp)) {
                         Text(text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(income.get("Date")))
-                        Text(text = "Descricao: ")
+                        Text(text = "Descrição: ${income["Description"]}")
                     }
                 }
 
