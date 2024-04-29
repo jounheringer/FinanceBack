@@ -162,7 +162,7 @@ fun ShowAllIncomes(modifier: Modifier, navigateTo: () -> Unit, context: Context,
                 }
             }
         }
-        incomes?.forEach { income ->
+        incomes.forEach { income ->
             Card(
                 modifier = modifier
                     .fillMaxWidth()

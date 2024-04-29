@@ -125,7 +125,7 @@ class Income(userID: Int? = null) {
 
         try {
             val databaseCursor = DatabaseHelper(context).writableDatabase
-            val results = mutableMapOf<String, Int>()
+            val results = mutableMapOf<String, Float>()
             val returnMap = mutableMapOf<String, String>()
 
             databaseCursor.rawQuery("SELECT SUM(${DatabaseHelper.INCOME.COLUMN_VALUE}) AS negative, \n" +
@@ -137,15 +137,15 @@ class Income(userID: Int? = null) {
                 arrayOf("1", timeStamp, timeStamp, "0")
             ).use { cursor ->
                 if (cursor.moveToFirst()){
-                    results["Total"] = cursor.getInt(cursor.getColumnIndexOrThrow("positive")).minus(cursor.getInt(cursor.getColumnIndexOrThrow("negative")))
-                    results["Positivo"] = cursor.getInt(cursor.getColumnIndexOrThrow("positive"))
-                    results["Negativo"] = cursor.getInt(cursor.getColumnIndexOrThrow("negative"))
+                    results["Total"] = cursor.getFloat(cursor.getColumnIndexOrThrow("positive")).minus(cursor.getInt(cursor.getColumnIndexOrThrow("negative")))
+                    results["Positivo"] = cursor.getFloat(cursor.getColumnIndexOrThrow("positive"))
+                    results["Negativo"] = cursor.getFloat(cursor.getColumnIndexOrThrow("negative"))
                 }
             }
             databaseCursor.close()
 
             results.forEach { number ->
-                returnMap[number.key] = NumberFormatter().currencyFormatter(number.value.toString())
+                returnMap[number.key] = NumberFormatter().currencyFormatterFloat(number.value.toString())
             }
 
             return returnMap
