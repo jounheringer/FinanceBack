@@ -1,23 +1,20 @@
 package com.example.financeback.screens.compose
 
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material3.AlertDialogDefaults.containerColor
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -35,30 +32,42 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.financeback.R
+import com.example.financeback.screens.Credentials
+import com.example.financeback.screens.LoginScreen
+import com.example.financeback.screens.RegisterScreen
 import com.example.financeback.utils.Auth
-import com.example.financeback.utils.Credentials
 
 @Composable
-fun Login(modifier: Modifier = Modifier){
+fun Login(modifier: Modifier = Modifier, activity: ComponentActivity?){
     Surface(modifier = modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background) {
         Column(verticalArrangement = Arrangement.SpaceAround,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
+            WelcomeLogo(modifier)
+
+            LoginInputs(modifier = modifier)
+            if (activity != null) {
+                RegisterOption(activity)
+            }
+        }
+    }
+}
+
+@Composable
+fun WelcomeLogo(modifier: Modifier, screenText: String = "Bem-Vindo") {
+    Column(
                 modifier = modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.finance_back_logo),
-                    contentDescription = "Logo"
-                )
-                Text(text = "Bem-Vindo")
-            }
-
-            LoginInputs(modifier = modifier)
-        }
+    Image(
+        painter = painterResource(id = R.drawable.finance_back_logo),
+        contentDescription = "Logo"
+    )
+    Text(text = screenText,
+        fontSize = 18.sp)
     }
 }
 
@@ -74,11 +83,11 @@ fun LoginInputs(modifier: Modifier) {
         Text(modifier = modifier.padding(10.dp),
             text = "Já é um usuario cadastrado?")
 
-        TextField(value = credentials.login,
+        OutlinedTextField(value = credentials.login,
             onValueChange = { data -> credentials = credentials.copy(login = data) },
             label = { Text(text = "Usuario") })
 
-        TextField(value = credentials.password,
+        OutlinedTextField(value = credentials.password,
             onValueChange = { data -> credentials = credentials.copy(password = data) },
             label = { Text(text = "Senha") },
             visualTransformation = if(showPassword) VisualTransformation.None else PasswordVisualTransformation(),
@@ -105,10 +114,13 @@ fun LoginInputs(modifier: Modifier) {
             Text(text = "Login")
         }
     }
+}
 
+@Composable
+fun RegisterOption(activity: ComponentActivity) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(text = "Primeira vez no aplicativo?")
-        TextButton(onClick = {/*TODO register new users */}){
+        TextButton(onClick = { LoginScreen().goTo(activity, RegisterScreen::class.java) }){
             Text(text = "Cadastrar")
         }
     }
@@ -117,5 +129,5 @@ fun LoginInputs(modifier: Modifier) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewLoginScreen(){
-    Login()
+    Login(activity = null)
 }

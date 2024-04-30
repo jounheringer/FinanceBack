@@ -21,12 +21,12 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val TABLE_NAME = "users"
         const val COLUMN_ID = "ID"
         const val COLUMN_NAME = "Name"
-        const val COLUMN_EMAIL = "Email"
+        const val COLUMN_USERNAME = "UserName"
         const val COLUMN_PASSWORD = "Password"
     }
     companion object {
         const val DATABASE_NAME = "FINANCEBACK"
-        const val DATABASE_VERSION = 7
+        const val DATABASE_VERSION = 8
     }
 
     private val CREATE_INCOME =
@@ -45,7 +45,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         "CREATE TABLE IF NOT EXISTS ${USERS.TABLE_NAME}(" +
                 "${USERS.COLUMN_ID} INTEGER PRIMARY KEY," +
                 "${USERS.COLUMN_NAME} TEXT DEFAULT NULL," +
-                "${USERS.COLUMN_EMAIL} TEXT DEFAULT NULL," +
+                "${USERS.COLUMN_USERNAME} TEXT DEFAULT NULL," +
                 "${USERS.COLUMN_PASSWORD} TEXT DEFAULT NULL)"
 
     override fun onCreate(db: SQLiteDatabase) {
