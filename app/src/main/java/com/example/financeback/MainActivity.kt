@@ -28,10 +28,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.financeback.screens.Screen
-import com.example.financeback.screens.HomeScreen
-import com.example.financeback.screens.IncomeScreen
-import com.example.financeback.screens.ReportScreen
+import com.example.financeback.screens.compose.Screen
+import com.example.financeback.screens.compose.HomeScreen
+import com.example.financeback.screens.compose.IncomeScreen
+import com.example.financeback.screens.compose.ReportScreen
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

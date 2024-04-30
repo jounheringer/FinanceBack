@@ -1,4 +1,4 @@
-package com.example.financeback.screens
+package com.example.financeback.screens.compose
 
 
 import androidx.compose.material3.Text

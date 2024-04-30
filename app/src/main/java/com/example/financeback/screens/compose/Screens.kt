@@ -1,4 +1,4 @@
-package com.example.financeback.screens
+package com.example.financeback.screens.compose
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List

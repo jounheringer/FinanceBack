@@ -1,4 +1,4 @@
-package com.example.financeback.screens
+package com.example.financeback.screens.compose
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
