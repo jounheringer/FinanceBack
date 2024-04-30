@@ -87,9 +87,7 @@ fun FinanceBackScreen(){
     ){ innerPadding ->
         val context = LocalContext.current
         NavHost(navController, startDestination = Screen.Home.route, Modifier.padding(innerPadding)) {
-            composable(Screen.Home.route) { HomeScreen(context = context,
-                navigateTo = {navController.navigate(Screen.Income.route)
-                {
+            composable(Screen.Home.route) { HomeScreen(navigateTo = {navController.navigate(Screen.Income.route) {
                     popUpTo(navController.graph.findStartDestination().id) {
                         saveState = true
                     }
