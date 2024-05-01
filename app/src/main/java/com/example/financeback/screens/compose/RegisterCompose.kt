@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,8 +32,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.financeback.R
 import com.example.financeback.screens.LoginScreen
+import com.example.financeback.screens.RegisterScreen
 import com.example.financeback.screens.UserInfo
-import com.example.financeback.utils.Auth
 
 @Composable
 fun Register(modifier: Modifier = Modifier, activity: ComponentActivity?) {
@@ -107,7 +106,7 @@ fun RegisterInputs(modifier: Modifier) {
                         contentDescription = "Show Password"
                     )}})
 
-        Button(onClick = { if (!Auth().checkRegister(userInfo, context)) userInfo = UserInfo() },
+        Button(onClick = { if (!RegisterScreen().checkRegister(userInfo, context)) userInfo = UserInfo() },
             modifier = modifier.fillMaxWidth(),
             enabled = (userInfo.isNotEmpty() && userInfo.confirmPassword(tempPassword))) {
             Text(text = "Cadastrar")

@@ -18,7 +18,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,7 +36,6 @@ import com.example.financeback.R
 import com.example.financeback.screens.Credentials
 import com.example.financeback.screens.LoginScreen
 import com.example.financeback.screens.RegisterScreen
-import com.example.financeback.utils.Auth
 
 @Composable
 fun Login(modifier: Modifier = Modifier, activity: ComponentActivity?){
@@ -108,7 +106,7 @@ fun LoginInputs(modifier: Modifier) {
             }
         }
 
-        Button(onClick = { if (!Auth().checkCredentials(credentials, context)) credentials = Credentials() },
+        Button(onClick = { if (!LoginScreen().checkCredentials(credentials, context)) credentials = Credentials() },
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             enabled = credentials.isNotEmpty()){
             Text(text = "Login")
