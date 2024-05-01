@@ -52,4 +52,41 @@ class User {
             throw e
         }
     }
+
+    fun getUser(context: Context, credentials: Credentials): Credentials {
+        val where = "${DatabaseHelper.USERS.COLUMN_USERNAME} = ?"
+        val whereArgs = arrayOf(credentials.login)
+        val userInfo = Credentials()
+
+        try {
+            val databaseHelper = DatabaseHelper(context).readableDatabase
+
+            databaseHelper.query(
+                DatabaseHelper.USERS.TABLE_NAME,
+                null,
+                where,
+                whereArgs,
+                null,
+                null,
+                null,
+                null,
+            ).use { cursor ->
+                if (cursor.moveToFirst()) {
+                    userInfo.userID =
+                        cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.USERS.COLUMN_ID))
+                    userInfo.login =
+                        cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USERS.COLUMN_USERNAME))
+                    userInfo.password =
+                        cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USERS.COLUMN_PASSWORD))
+                    userInfo.fullName =
+                        cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USERS.COLUMN_NAME))
+                }
+            }
+
+            return userInfo
+
+        }catch (e: SQLiteException){
+            throw e
+        }
+    }
 }
