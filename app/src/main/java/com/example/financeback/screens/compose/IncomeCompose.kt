@@ -47,16 +47,14 @@ fun IncomeScreen(modifier:Modifier = Modifier, context: Context) {
         verticalArrangement = Arrangement.SpaceEvenly) {
         Column(modifier = modifier.width(300.dp),
             horizontalAlignment = Alignment.CenterHorizontally) {
-            IncomeInputs(context = context)
+            IncomeInputs(context = context, modifier = modifier.padding(0.dp, 8.dp).fillMaxWidth())
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun IncomeInputs(modifier: Modifier = Modifier
-    .padding(0.dp, 8.dp)
-    .fillMaxWidth(), context: Context){
+fun IncomeInputs(modifier: Modifier, context: Context){
     val incomeOptions = listOf("Positivo", "Negativo")
     val focusManager = LocalFocusManager.current
 
