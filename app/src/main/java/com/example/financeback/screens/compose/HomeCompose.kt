@@ -31,10 +31,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.financeback.classes.Income
@@ -46,10 +44,9 @@ import java.util.Calendar
 import java.util.Locale
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier, navigateTo: () -> Unit) {
+fun HomeScreen(modifier: Modifier = Modifier, context: Context, navigateTo: () -> Unit) {
     val calendar = Calendar.getInstance()
-    val date = "${calendar.get(Calendar.YEAR)}-${NumberFormatter().decimalFormatter(calendar.get(Calendar.MONTH).toString())}"
-    val context = LocalContext.current
+    val date = "${calendar.get(Calendar.YEAR)}-${NumberFormatter().decimalFormatter((calendar.get(Calendar.MONTH)+1).toString())}"
     Column(
         modifier
             .fillMaxHeight()
@@ -153,8 +150,8 @@ fun RecentIncomes(modifier: Modifier = Modifier, context: Context, navigateTo: (
     }
 }
 
-@Preview
-@Composable
-fun HomeScreenPreview() {
-    HomeScreen(navigateTo = {})
-}
+//@Preview
+//@Composable
+//fun HomeScreenPreview() {
+//    HomeScreen(navigateTo = {})
+//}

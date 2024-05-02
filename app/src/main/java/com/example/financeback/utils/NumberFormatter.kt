@@ -26,9 +26,10 @@ class NumberFormatter {
         return "${intPart},${fractionPart}"
     }
 
-    fun currencyFormatterFloat(value: String,
+    fun currencyFormatterFloat(value: Float,
                                numberOfDecimals: Int = 2): String{
-        val numberWithoutComma = value.replace(".", "")
+        val valueString = String.format("%.2f", value)
+        val numberWithoutComma = valueString.replace(",", "")
 
         val intPart = numberWithoutComma
             .dropLast(numberOfDecimals)

@@ -73,7 +73,7 @@ class Income(userID: Int? = null) {
                         val incomesReturn = mutableMapOf<String, Any>()
                         incomesReturn["ID"] = rows.getInt(rows.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_ID))
                         incomesReturn["User"] = rows.getInt(rows.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_USER))
-                        incomesReturn["Value"] = NumberFormatter().currencyFormatterFloat(rows.getFloat(rows.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_VALUE)).toString())
+                        incomesReturn["Value"] = NumberFormatter().currencyFormatterFloat(rows.getFloat(rows.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_VALUE)))
                         incomesReturn["Name"] = rows.getString(rows.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_NAME))
                         incomesReturn["Date"] = rows.getLong(rows.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_DATESTAMP))
                         incomesReturn["Profit"] = (rows.getInt(rows.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_PROFIT)) == 1)
@@ -145,7 +145,7 @@ class Income(userID: Int? = null) {
             databaseCursor.close()
 
             results.forEach { number ->
-                returnMap[number.key] = NumberFormatter().currencyFormatterFloat(number.value.toString())
+                returnMap[number.key] = NumberFormatter().currencyFormatterFloat(number.value)
             }
 
             return returnMap
