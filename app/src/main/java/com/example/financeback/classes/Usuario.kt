@@ -35,7 +35,7 @@ class User {
     fun checkUser(context: Context, credentials: Credentials): Int {
         val where = "${DatabaseHelper.USERS.COLUMN_USERNAME} = ? AND ${DatabaseHelper.USERS.COLUMN_PASSWORD} = ?"
         val whereArgs = arrayOf(credentials.login, credentials.password)
-        var returnUser: Int = 0
+        var returnUser: Int
 
         try {
             val databaseCursor = DatabaseHelper(context).readableDatabase
@@ -50,8 +50,10 @@ class User {
                 null,
                 null,
             ).use {cursor ->
-                if (cursor.moveToFirst()){
-                    returnUser = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.USERS.COLUMN_ID))
+                returnUser = if (cursor.moveToFirst()){
+                    cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.USERS.COLUMN_ID))
+                } else {
+                    -1
                 }
             }
             return returnUser

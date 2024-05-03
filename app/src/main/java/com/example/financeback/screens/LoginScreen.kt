@@ -48,7 +48,7 @@ class LoginScreen : ComponentActivity() {
         val userLog = UserLog()
         val userID = user.checkUser(context, credentials)
         if (credentials.isNotEmpty()) {
-            if (credentials.login == "admin" || userID != 0){
+            if (credentials.login == "admin" || userID != -1){
                 userLog.saveUserLog(context, credentials)
                 val int = Intent(context, MainActivity::class.java)
                 int.putExtra("UserID", userID)
