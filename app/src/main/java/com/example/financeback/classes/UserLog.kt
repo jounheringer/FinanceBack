@@ -8,9 +8,8 @@ import com.example.financeback.screens.Credentials
 class UserLog {
     fun saveUserLog(context: Context, credentials: Credentials): Long{
         val user = User()
-        val userInfo = user.getUser(context, credentials)
+        val userInfo = user.getCredentials(context, credentials)
         val values = ContentValues().apply {
-            put(DatabaseHelper.USER_LOGS.COLUMN_USER_ID, userInfo.userID)
             put(DatabaseHelper.USER_LOGS.COLUMN_USERNAME, userInfo.login)
             put(DatabaseHelper.USER_LOGS.COLUMN_NAME, userInfo.fullName)
             put(DatabaseHelper.USER_LOGS.COLUMN_PASSWORD, userInfo.password)

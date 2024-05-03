@@ -11,20 +11,6 @@ import com.example.financeback.MainActivity
 import com.example.financeback.classes.User
 import com.example.financeback.screens.compose.Register
 
-data class UserInfo(
-    var userName: String = "",
-    var fullName: String = "",
-    var password: String = ""
-) {
-    fun isNotEmpty(): Boolean {
-        return userName.trim().isNotEmpty() && fullName.trim().isNotEmpty() && password.trim().isNotEmpty()
-    }
-
-    fun confirmPassword(secondPassword: String): Boolean {
-        return password.trim().isNotEmpty() && (password == secondPassword)
-    }
-}
-
 class RegisterScreen: ComponentActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,14 +20,17 @@ class RegisterScreen: ComponentActivity(){
         }
     }
 
-    fun checkRegister(userInfo: UserInfo, context: Context): Boolean{
+    fun checkRegister(credentials: Credentials, context: Context): Boolean{
         val user = User()
-        if (userInfo.isNotEmpty()){
-            if(user.saveUser(context, userInfo).toInt() == -1){
+        if (credentials.isNotEmpty()){
+            val userID = user.checkUser(context, credentials)
+            if(user.saveUser(context, credentials).toInt() == -1){
                 Toast.makeText(context, "Erro ao cadastrar usuario tente novamente.", Toast.LENGTH_SHORT).show()
                 return false
             }
-            context.startActivity(Intent(context, MainActivity::class.java))
+            val int = Intent(context, MainActivity::class.java)
+            int.putExtra("UserID", userID)
+            context.startActivity(int)
             (context as Activity).finish()
             return true
         }

@@ -14,7 +14,6 @@ import com.example.financeback.classes.UserLog
 import com.example.financeback.screens.compose.Login
 
 data class Credentials(
-    var userID: Int = 0,
     var login: String = "",
     var fullName: String = "",
     var password: String = "",
@@ -22,6 +21,9 @@ data class Credentials(
 ){
     fun isNotEmpty(): Boolean {
         return login.trim().isNotEmpty() && password.trim().isNotEmpty()
+    }
+    fun confirmPassword(secondPassword: String): Boolean {
+        return password.trim().isNotEmpty() && (password == secondPassword)
     }
 }
 
@@ -44,10 +46,13 @@ class LoginScreen : ComponentActivity() {
     fun checkCredentials(credentials: Credentials, context: Context): Boolean {
         val user = User()
         val userLog = UserLog()
+        val userID = user.checkUser(context, credentials)
         if (credentials.isNotEmpty()) {
-            if (credentials.login == "admin" || user.checkUser(context, credentials)){
+            if (credentials.login == "admin" || userID != 0){
                 userLog.saveUserLog(context, credentials)
-                context.startActivity(Intent(context, MainActivity::class.java))
+                val int = Intent(context, MainActivity::class.java)
+                int.putExtra("UserID", userID)
+                context.startActivity(int)
                 (context as Activity).finish()
                 return true
             }

@@ -31,9 +31,9 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.financeback.R
+import com.example.financeback.screens.Credentials
 import com.example.financeback.screens.LoginScreen
 import com.example.financeback.screens.RegisterScreen
-import com.example.financeback.screens.UserInfo
 
 @Composable
 fun Register(modifier: Modifier = Modifier, activity: ComponentActivity?) {
@@ -55,7 +55,7 @@ fun Register(modifier: Modifier = Modifier, activity: ComponentActivity?) {
 fun RegisterInputs(modifier: Modifier) {
     var showPassword by remember { mutableStateOf(false) }
     var showTempPassword by remember { mutableStateOf(false) }
-    var userInfo by remember { mutableStateOf(UserInfo()) }
+    var userInfo by remember { mutableStateOf(Credentials()) }
     var tempPassword by remember { mutableStateOf("") }
 
     val context = LocalContext.current
@@ -63,8 +63,8 @@ fun RegisterInputs(modifier: Modifier) {
     Column(modifier = modifier.size(280.dp, 350.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween) {
-        OutlinedTextField(value = userInfo.userName,
-            onValueChange = { data -> userInfo = userInfo.copy(userName = data) },
+        OutlinedTextField(value = userInfo.login,
+            onValueChange = { data -> userInfo = userInfo.copy(login = data) },
             label = { Text(text = "Usuario") })
 
         OutlinedTextField(value = userInfo.fullName,
@@ -106,7 +106,7 @@ fun RegisterInputs(modifier: Modifier) {
                         contentDescription = "Show Password"
                     )}})
 
-        Button(onClick = { if (!RegisterScreen().checkRegister(userInfo, context)) userInfo = UserInfo() },
+        Button(onClick = { if (!RegisterScreen().checkRegister(userInfo, context)) userInfo = Credentials() },
             modifier = modifier.fillMaxWidth(),
             enabled = (userInfo.isNotEmpty() && userInfo.confirmPassword(tempPassword))) {
             Text(text = "Cadastrar")
