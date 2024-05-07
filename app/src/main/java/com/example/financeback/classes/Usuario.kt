@@ -11,7 +11,8 @@ data class UserInfo(
     var userName: String = "Usuario",
     var fullName: String = "Nome Completo",
     var userID: Int = 0,
-    var iconImage: Int = R.drawable.user
+    var iconImage: Int = R.drawable.user,
+    var dateCreated: Int = 1041972582
 )
 
 class User {
@@ -35,7 +36,7 @@ class User {
     fun checkUser(context: Context, credentials: Credentials): Int {
         val where = "${DatabaseHelper.USERS.COLUMN_USERNAME} = ? AND ${DatabaseHelper.USERS.COLUMN_PASSWORD} = ?"
         val whereArgs = arrayOf(credentials.login, credentials.password)
-        var returnUser: Int
+        var returnUser = -1
 
         try {
             val databaseCursor = DatabaseHelper(context).readableDatabase
@@ -50,10 +51,8 @@ class User {
                 null,
                 null,
             ).use {cursor ->
-                returnUser = if (cursor.moveToFirst()){
-                    cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.USERS.COLUMN_ID))
-                } else {
-                    -1
+                if (cursor.moveToFirst()){
+                    returnUser = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.USERS.COLUMN_ID))
                 }
             }
             return returnUser
@@ -119,13 +118,63 @@ class User {
                     userInfo.fullName =
                         cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USERS.COLUMN_NAME))
                     userInfo.userID =
-                        cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.USERS.COLUMN_PASSWORD))
+                        cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.USERS.COLUMN_ID))
 
                 }
             }
 
             return userInfo
 
+        }catch (e: SQLiteException){
+            throw e
+        }
+    }
+
+    fun deleteUser(context: Context, userInfo: UserInfo): Boolean {
+        val where = "${DatabaseHelper.USERS.COLUMN_USERNAME} = ? AND ${DatabaseHelper.USERS.COLUMN_ID} = ?"
+        val whereArgs = arrayOf(userInfo.userName, userInfo.userID.toString())
+
+         try{
+            val databaseCursor = DatabaseHelper(context).writableDatabase
+
+            return databaseCursor.delete(
+                DatabaseHelper.USERS.TABLE_NAME,
+                where,
+                whereArgs) > 0
+        }catch (e: SQLiteException){
+            throw e
+        }
+    }
+
+    fun editUser(context: Context, userInfo: UserInfo): Boolean {
+        val values = ContentValues().apply {
+            put(DatabaseHelper.USERS.COLUMN_USERNAME, userInfo.userName)
+            put(DatabaseHelper.USERS.COLUMN_NAME, userInfo.fullName)
+        }
+
+        try {
+            val databaseCursor = DatabaseHelper(context).writableDatabase
+
+            return databaseCursor.update(DatabaseHelper.USERS.TABLE_NAME,
+                values,
+                "${DatabaseHelper.USERS.COLUMN_ID} = ?",
+                arrayOf(userInfo.userID.toString())) > 0
+        }catch (e: SQLiteException){
+            throw e
+        }
+    }
+
+    fun changePassword(context: Context, userID: Int, password: String, oldPassword: String): Boolean {
+        val values = ContentValues().apply {
+            put(DatabaseHelper.USERS.COLUMN_PASSWORD, password)
+        }
+        try {
+            val databaseCursor = DatabaseHelper(context).writableDatabase
+
+            return databaseCursor.update(DatabaseHelper.USERS.TABLE_NAME,
+                values,
+                "${DatabaseHelper.USERS.COLUMN_ID} = ? AND ${DatabaseHelper.USERS.COLUMN_PASSWORD} = ?",
+                arrayOf(userID.toString(), oldPassword)) > 0
         }catch (e: SQLiteException){
             throw e
         }

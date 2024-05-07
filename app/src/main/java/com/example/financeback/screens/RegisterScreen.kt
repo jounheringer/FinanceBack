@@ -23,11 +23,11 @@ class RegisterScreen: ComponentActivity(){
     fun checkRegister(credentials: Credentials, context: Context): Boolean{
         val user = User()
         if (credentials.isNotEmpty()){
-            val userID = user.checkUser(context, credentials)
             if(user.saveUser(context, credentials).toInt() == -1){
                 Toast.makeText(context, "Erro ao cadastrar usuario tente novamente.", Toast.LENGTH_SHORT).show()
                 return false
             }
+            val userID = user.checkUser(context, credentials)
             val int = Intent(context, MainActivity::class.java)
             int.putExtra("UserID", userID)
             context.startActivity(int)

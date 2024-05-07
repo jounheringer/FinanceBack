@@ -1,6 +1,8 @@
 package com.example.financeback
 
+import android.content.Context
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
@@ -15,12 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -46,9 +42,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -58,9 +54,10 @@ import androidx.navigation.compose.rememberNavController
 import com.example.financeback.classes.MenuItem
 import com.example.financeback.classes.User
 import com.example.financeback.classes.UserInfo
-import com.example.financeback.screens.compose.Screen
+import com.example.financeback.screens.Screen
 import com.example.financeback.screens.compose.HomeScreen
 import com.example.financeback.screens.compose.IncomeScreen
+import com.example.financeback.screens.compose.ProfileScreen
 import com.example.financeback.screens.compose.ReportScreen
 import com.example.financeback.ui.theme.Negative
 import kotlinx.coroutines.launch
@@ -71,18 +68,19 @@ class MainActivity : AppCompatActivity() {
 
         supportActionBar?.hide()
 
-        val user = User()
-        val userID = intent.getIntExtra("UserID", 0)
-        val userInfo = user.getUserByID(this, userID)
+        val userID = intent.getIntExtra("UserID", -1)
 
         setContent {
-            FinanceBackScreen(userInfo = userInfo)
+            FinanceBackScreen(userID = userID, context = this)
         }
     }
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FinanceBackScreen(modifier: Modifier = Modifier, userInfo: UserInfo) {
+fun FinanceBackScreen(modifier: Modifier = Modifier, userID: Int, context: Context) {
+    val user = User()
+    var userInfo by remember { mutableStateOf(UserInfo()) }
+    var updatedUser by remember { mutableStateOf(true) }
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
     val items = listOf(Screen.Home, Screen.Income, Screen.Report)
@@ -90,45 +88,53 @@ fun FinanceBackScreen(modifier: Modifier = Modifier, userInfo: UserInfo) {
 
     var screenTitle by remember { mutableStateOf(Screen.Home.title) }
 
+    if (updatedUser){
+        userInfo = user.getUserByID(context, userID)
+        updatedUser = false
+    }
+
     ModalNavigationDrawer(drawerState = drawerState,
         drawerContent = { ModalDrawerSheet {
             DrawerHeader(modifier, userInfo)
             HorizontalDivider()
             DrawerItems(modifier = modifier,
+                navController = navController,
+                closeDrawer = { scope.launch{drawerState.close() }},
+                changeScreenTitle = {screenTitle = it},
                 items = listOf(
                     MenuItem(
-                        id = "profile",
-                        title = "Perfil",
-                        contentDescription = "Ir para perfil",
-                        icon = Icons.Filled.Person,
+                        id = Screen.Profile.route,
+                        title = Screen.Profile.title,
+                        contentDescription = Screen.Profile.description,
+                        icon = Screen.Profile.icon,
                         sensitiveItem = false
                     ),
                     MenuItem(
-                        id = "settings",
-                        title = "Configurações",
-                        contentDescription = "Ir para configurações",
-                        icon = Icons.Filled.Build,
+                        id = Screen.Settings.route,
+                        title = Screen.Settings.title,
+                        contentDescription = Screen.Settings.description,
+                        icon = Screen.Settings.icon,
                         sensitiveItem = false
                     ),
                     MenuItem(
-                        id = "help",
-                        title = "Ajuda",
-                        contentDescription = "Ir para documentação",
-                        icon = Icons.Filled.Info,
+                        id = Screen.Help.route,
+                        title = Screen.Help.title,
+                        contentDescription = Screen.Help.description,
+                        icon = Screen.Help.icon,
                         sensitiveItem = false
                     ),
                     MenuItem(
-                        id = "logout",
-                        title = "Deslogar",
-                        contentDescription = "Deslogar",
-                        icon = Icons.AutoMirrored.Filled.ExitToApp,
+                        id = Screen.LogOut.route,
+                        title = Screen.LogOut.title,
+                        contentDescription = Screen.LogOut.description,
+                        icon = Screen.LogOut.icon,
                         sensitiveItem = false
                     ),
                     MenuItem(
-                        id = "restart",
-                        title = "Restaurar App",
-                        contentDescription = "Restaurar app",
-                        icon = Icons.Filled.Warning,
+                        id = Screen.Restart.route,
+                        title = Screen.Restart.title,
+                        contentDescription = Screen.Restart.description,
+                        icon = Screen.Restart.icon,
                         sensitiveItem = true
                     )
                 ))
@@ -185,7 +191,6 @@ fun FinanceBackScreen(modifier: Modifier = Modifier, userInfo: UserInfo) {
             }
         )
         { innerPadding ->
-            val context = LocalContext.current
             NavHost(
                 navController,
                 startDestination = Screen.Home.route,
@@ -217,6 +222,13 @@ fun FinanceBackScreen(modifier: Modifier = Modifier, userInfo: UserInfo) {
                     )
                 }
                 composable(Screen.Income.route) { IncomeScreen(context = context,) }
+
+                composable(Screen.Profile.route) { ProfileScreen(userInfo = userInfo, updatedUser = { updatedUser = it }) }
+                composable(Screen.Settings.route) { Toast.makeText(context, Screen.Settings.route, Toast.LENGTH_SHORT).show() }
+                composable(Screen.Help.route) { Toast.makeText(context, Screen.Help.route, Toast.LENGTH_SHORT).show() }
+                composable(Screen.LogOut.route) { Toast.makeText(context, Screen.LogOut.route, Toast.LENGTH_SHORT).show() }
+                composable(Screen.Restart.route) { Toast.makeText(context, Screen.Restart.route, Toast.LENGTH_SHORT).show() }
+
             }
         }
     }
@@ -238,14 +250,24 @@ fun DrawerHeader(modifier: Modifier, userInfo: UserInfo) {
 }
 
 @Composable
-fun DrawerItems(modifier: Modifier, items: List<MenuItem>) {
+fun DrawerItems(modifier: Modifier, items: List<MenuItem>, navController: NavController, closeDrawer: () -> Unit, changeScreenTitle: (String) -> Unit) {
     Column {
         items.forEach { item ->
             Row(modifier = modifier
                 .padding(16.dp, 8.dp)
                 .fillMaxWidth()
                 .height(32.dp)
-                .clickable { /*TODO*/ },
+                .clickable {
+                    navController.navigate(item.id) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                    changeScreenTitle(item.title)
+                    closeDrawer()
+                },
                 verticalAlignment = Alignment.CenterVertically) {
                 Icon(imageVector = item.icon,
                     contentDescription = item.contentDescription,
@@ -259,10 +281,3 @@ fun DrawerItems(modifier: Modifier, items: List<MenuItem>) {
         }
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewFinanceBackScreen(){
-    FinanceBackScreen(userInfo = UserInfo())
-}
-

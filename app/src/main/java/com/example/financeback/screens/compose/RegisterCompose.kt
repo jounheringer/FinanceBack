@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -26,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -76,6 +78,7 @@ fun RegisterInputs(modifier: Modifier) {
         OutlinedTextField(value = userInfo.password,
             onValueChange = { data -> userInfo = userInfo.copy(password = data) },
             label = { Text(text = "Senha") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
                 if (!showPassword) IconButton(onClick = { showPassword = true }) {
@@ -92,6 +95,7 @@ fun RegisterInputs(modifier: Modifier) {
         OutlinedTextField(value = tempPassword,
             onValueChange = { tempPassword = it },
             label = { Text(text = "Confirmar senha") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             visualTransformation = if (showTempPassword) VisualTransformation.None else PasswordVisualTransformation(),
             isError = !userInfo.confirmPassword(tempPassword),
             trailingIcon = {

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -27,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -88,6 +90,7 @@ fun LoginInputs(modifier: Modifier) {
         OutlinedTextField(value = credentials.password,
             onValueChange = { data -> credentials = credentials.copy(password = data) },
             label = { Text(text = "Senha") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             visualTransformation = if(showPassword) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = { if(!showPassword) IconButton(onClick = { showPassword = true }) {
                 Icon(painter = painterResource(id = R.drawable.visibilidade), contentDescription = "Show Password")
