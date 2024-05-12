@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,28 +32,33 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.financeback.classes.Income
-import com.example.financeback.ui.theme.Negative
-import com.example.financeback.ui.theme.light_Positive
+import com.example.financeback.ui.theme.ExtendedColorScheme
+import com.example.financeback.ui.theme.negativeLight
+import com.example.financeback.ui.theme.positiveLight
 import com.example.financeback.utils.NumberFormatter
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier, context: Context, navigateTo: () -> Unit) {
+fun HomeScreen(modifier: Modifier = Modifier, navigateTo: () -> Unit) {
     val calendar = Calendar.getInstance()
     val date = "${calendar.get(Calendar.YEAR)}-${NumberFormatter().decimalFormatter((calendar.get(Calendar.MONTH)+1).toString())}"
+    val context = LocalContext.current
     Column(
         modifier
             .fillMaxHeight()
             .fillMaxWidth()
             .padding(8.dp),
-        verticalArrangement = Arrangement.SpaceBetween) {
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
         IncomeStatus(modifier, context, date)
         RecentIncomes(context = context, navigateTo = navigateTo, date = date)
     }
@@ -87,7 +93,7 @@ fun RecentIncomes(modifier: Modifier = Modifier, context: Context, navigateTo: (
                     modifier
                         .fillMaxWidth()
                         .background(
-                            color = MaterialTheme.colorScheme.onError,
+                            color = MaterialTheme.colorScheme.background,
                             shape = RoundedCornerShape(10.dp)
                         )
                 ) {
@@ -99,10 +105,10 @@ fun RecentIncomes(modifier: Modifier = Modifier, context: Context, navigateTo: (
                                 expand = !expand
                             }) {
                         Row {
-                            Text(text = "${income["Name"]}: ")
+                            Text(text = "${income["Name"]}: ", color = MaterialTheme.colorScheme.onBackground)
                             Text(
                                 text = "R$${income["Value"]}",
-                                color = if (income["Profit"] as Boolean) light_Positive else Negative
+                                color = if (income["Profit"] as Boolean) positiveLight else negativeLight
                             )
                         }
                         Spacer(modifier = Modifier.weight(1f))
@@ -112,23 +118,25 @@ fun RecentIncomes(modifier: Modifier = Modifier, context: Context, navigateTo: (
                         }) {
                             Icon(
                                 imageVector = Icons.Filled.MoreVert,
-                                contentDescription = "Opções"
+                                contentDescription = "Opções",
+                                tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
                         Icon(
                             imageVector = if (!expand) Icons.Filled.KeyboardArrowDown else Icons.Filled.KeyboardArrowUp,
-                            contentDescription = "Mais informações"
+                            contentDescription = "Mais informações",
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                     if (expand) {
                         Column(modifier = modifier.padding(10.dp, 5.dp)) {
-                            Text(text = "Nota Nº ${income["ID"]}")
+                            Text(text = "Nota Nº ${income["ID"]}", color = MaterialTheme.colorScheme.onBackground)
                             Text(
                                 text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(
                                     income["Date"]
-                                )
+                                ), color = MaterialTheme.colorScheme.onBackground
                             )
-                            Text(text = "Descrição: ${income["Description"]}")
+                            Text(text = "Descrição: ${income["Description"]}", color = MaterialTheme.colorScheme.onBackground)
                         }
                     }
 
@@ -150,8 +158,8 @@ fun RecentIncomes(modifier: Modifier = Modifier, context: Context, navigateTo: (
     }
 }
 
-//@Preview
-//@Composable
-//fun HomeScreenPreview() {
-//    HomeScreen(navigateTo = {})
-//}
+@Preview
+@Composable
+fun HomeScreenPreview() {
+    HomeScreen(navigateTo = {})
+}

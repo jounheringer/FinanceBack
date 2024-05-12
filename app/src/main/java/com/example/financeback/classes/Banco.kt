@@ -35,10 +35,35 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COLUMN_DATE = "LoginDate"
         const val COLUMN_PASSWORD = "Password"
     }
+
+    object CATEGORIES {
+        const val TABLE_NAME = "categories"
+        const val COLUMN_ID = "ID"
+        const val COLUMN_USER_ID = "UserID"
+        const val COLUMN_NAME = "Name"
+        const val COLUMN_PROFIT = "Profit"
+        const val COLUMN_DEFAULT_CATEGORY = "DefaultCategory"
+    }
     companion object {
         const val DATABASE_NAME = "FINANCEBACK"
-        const val DATABASE_VERSION = 13
+        const val DATABASE_VERSION = 14
     }
+
+    private val CREATE_CATEGORIES =
+        "CREATE TABLE IF NOT EXISTS ${CATEGORIES.TABLE_NAME}(" +
+                "${CATEGORIES.COLUMN_ID} INTEGER PRIMARY KEY," +
+                "${CATEGORIES.COLUMN_USER_ID} INTEGER DEFAULT NULL," +
+                "${CATEGORIES.COLUMN_NAME} TEXT DEFAULT NULL," +
+                "${CATEGORIES.COLUMN_PROFIT} BOOLEAN DEFAULT FALSE," +
+                "${CATEGORIES.COLUMN_DEFAULT_CATEGORY} BOOLEAN DEFAULT FALSE," +
+                "FOREIGN KEY (${CATEGORIES.COLUMN_USER_ID})" +
+                "REFERENCES ${USERS.TABLE_NAME}(${USERS.COLUMN_ID}))"
+
+    private val POPULATE_CATEGORIES =
+        "INSERT INTO ${CATEGORIES.TABLE_NAME}" +
+                "(${CATEGORIES.COLUMN_NAME}, ${CATEGORIES.COLUMN_PROFIT}, ${CATEGORIES.COLUMN_DEFAULT_CATEGORY})" +
+                "VALUES (\"VENDA\", TRUE, TRUE)," +
+                "(\"COMPRA\", TRUE, TRUE)"
 
     private val CREATE_USER_LOGS =
         "CREATE TABLE IF NOT EXISTS ${USER_LOGS.TABLE_NAME}(" +
@@ -76,6 +101,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             db.execSQL(CREATE_USERS)
             db.execSQL(CREATE_INCOME)
             db.execSQL(CREATE_USER_LOGS)
+            db.execSQL(CREATE_CATEGORIES)
+            db.execSQL(POPULATE_CATEGORIES)
         }catch (e: SQLException){
             throw e
         }

@@ -26,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
@@ -39,7 +40,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -51,6 +51,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.financeback.ui.theme.AppTheme
 import com.example.financeback.classes.MenuItem
 import com.example.financeback.classes.User
 import com.example.financeback.classes.UserInfo
@@ -59,7 +60,7 @@ import com.example.financeback.screens.compose.HomeScreen
 import com.example.financeback.screens.compose.IncomeScreen
 import com.example.financeback.screens.compose.ProfileScreen
 import com.example.financeback.screens.compose.ReportScreen
-import com.example.financeback.ui.theme.Negative
+import com.example.financeback.ui.theme.negativeLight
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -71,7 +72,9 @@ class MainActivity : AppCompatActivity() {
         val userID = intent.getIntExtra("UserID", -1)
 
         setContent {
-            FinanceBackScreen(userID = userID, context = this)
+            AppTheme(false) {
+                FinanceBackScreen(userID = userID, context = this)
+            }
         }
     }
 }
@@ -191,14 +194,14 @@ fun FinanceBackScreen(modifier: Modifier = Modifier, userID: Int, context: Conte
             }
         )
         { innerPadding ->
-            NavHost(
-                navController,
-                startDestination = Screen.Home.route,
-                Modifier.padding(innerPadding)
-            ) {
-                composable(Screen.Home.route) {
-                    HomeScreen(context = context,
-                        navigateTo = {
+            Surface(color = MaterialTheme.colorScheme.primary) {
+                NavHost(
+                    navController,
+                    startDestination = Screen.Home.route,
+                    Modifier.padding(innerPadding)
+                ) {
+                    composable(Screen.Home.route) {
+                        HomeScreen(navigateTo = {
                             navController.navigate(Screen.Income.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
@@ -207,10 +210,9 @@ fun FinanceBackScreen(modifier: Modifier = Modifier, userID: Int, context: Conte
                                 screenTitle = Screen.Income.title
                             }
                         })
-                }
-                composable(Screen.Report.route) {
-                    ReportScreen(context = context,
-                        navigateToEdit = {
+                    }
+                    composable(Screen.Report.route) {
+                        ReportScreen(navigateToEdit = {
                             navController.navigate(Screen.Income.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
@@ -219,16 +221,45 @@ fun FinanceBackScreen(modifier: Modifier = Modifier, userID: Int, context: Conte
                                 screenTitle = Screen.Income.title
                             }
                         }
-                    )
+                        )
+                    }
+                    composable(Screen.Income.route) { IncomeScreen(userID = userID) }
+
+                    composable(Screen.Profile.route) {
+                        ProfileScreen(
+                            userInfo = userInfo,
+                            updatedUser = { updatedUser = it })
+                    }
+                    composable(Screen.Settings.route) {
+                        Toast.makeText(
+                            context,
+                            Screen.Settings.route,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    composable(Screen.Help.route) {
+                        Toast.makeText(
+                            context,
+                            Screen.Help.route,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    composable(Screen.LogOut.route) {
+                        Toast.makeText(
+                            context,
+                            Screen.LogOut.route,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    composable(Screen.Restart.route) {
+                        Toast.makeText(
+                            context,
+                            Screen.Restart.route,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
                 }
-                composable(Screen.Income.route) { IncomeScreen(context = context,) }
-
-                composable(Screen.Profile.route) { ProfileScreen(userInfo = userInfo, updatedUser = { updatedUser = it }) }
-                composable(Screen.Settings.route) { Toast.makeText(context, Screen.Settings.route, Toast.LENGTH_SHORT).show() }
-                composable(Screen.Help.route) { Toast.makeText(context, Screen.Help.route, Toast.LENGTH_SHORT).show() }
-                composable(Screen.LogOut.route) { Toast.makeText(context, Screen.LogOut.route, Toast.LENGTH_SHORT).show() }
-                composable(Screen.Restart.route) { Toast.makeText(context, Screen.Restart.route, Toast.LENGTH_SHORT).show() }
-
             }
         }
     }
@@ -271,12 +302,12 @@ fun DrawerItems(modifier: Modifier, items: List<MenuItem>, navController: NavCon
                 verticalAlignment = Alignment.CenterVertically) {
                 Icon(imageVector = item.icon,
                     contentDescription = item.contentDescription,
-                    tint = if (item.sensitiveItem) Negative else Color.Black)
+                    tint = if (item.sensitiveItem) negativeLight else Color.Black)
                 Spacer(modifier = modifier.width(10.dp))
                 Text(text = item.title,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = if (item.sensitiveItem) Negative else Color.Black)
+                    color = if (item.sensitiveItem) negativeLight else Color.Black)
             }
         }
     }

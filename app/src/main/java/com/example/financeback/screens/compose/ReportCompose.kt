@@ -16,17 +16,18 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.AlertDialog
-import androidx.compose.material.RadioButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonColors
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -38,11 +39,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.financeback.classes.Income
-import com.example.financeback.ui.theme.Negative
-import com.example.financeback.ui.theme.Positive
-import com.example.financeback.ui.theme.light_Positive
+import com.example.financeback.ui.theme.negativeLight
+import com.example.financeback.ui.theme.positiveLight
 import com.example.financeback.utils.CustomDatePicker
 import com.example.financeback.utils.NumberFormatter
 import com.example.financeback.utils.bounceClick
@@ -51,7 +53,8 @@ import java.util.Calendar
 import java.util.Locale
 
 @Composable
-fun ReportScreen(modifier: Modifier = Modifier, navigateToEdit: () -> Unit, context: Context) {
+fun ReportScreen(modifier: Modifier = Modifier, navigateToEdit: () -> Unit) {
+    val context = LocalContext.current
     val calendar = Calendar.getInstance()
     val numFormatter = NumberFormatter()
     var month by remember { mutableIntStateOf(calendar.get(Calendar.MONTH)) }
@@ -68,8 +71,7 @@ fun ReportScreen(modifier: Modifier = Modifier, navigateToEdit: () -> Unit, cont
             monthChange = { month = it },
             month = month,
             yearChange = { year = it },
-            year = year,
-            tempDate = date)
+            year = year)
 
         IncomeStatus(modifier = modifier, context, date)
         Spacer(modifier.height(10.dp))
@@ -83,8 +85,7 @@ fun DateReportSelect(modifier: Modifier,
                      monthChange: (Int) -> Unit,
                      month: Int,
                      yearChange: (Int) -> Unit,
-                     year: Int,
-                     tempDate: String) {
+                     year: Int) {
     var showDatePicker by rememberSaveable { mutableStateOf(false)}
     val months = listOf(
         "JAN",
@@ -121,14 +122,14 @@ fun DateReportSelect(modifier: Modifier,
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically) {
         TextButton(onClick = { showDatePicker = true }) {
-            Text(text = "${months[month]}/${year}")
+            Text(text = "${months[month]}/${year}", color = MaterialTheme.colorScheme.onPrimary)
         }
     }
 }
 
 @Composable
 fun ShowAllIncomes(modifier: Modifier, navigateTo: () -> Unit, context: Context, dateStamp: String, limit: Int = 10) {
-    val income = Income(null)
+    val income = Income()
     val state = rememberScrollState()
     val filterOption = listOf("Total", "Positivo", "Negativo")
     val orderBy by remember { mutableStateOf("DESC") }
@@ -157,7 +158,14 @@ fun ShowAllIncomes(modifier: Modifier, navigateTo: () -> Unit, context: Context,
             horizontalArrangement = Arrangement.SpaceBetween) {
             filterOption.forEach { option ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(selected = (filter == option), onClick = { filter = option })   
+                    RadioButton(selected = (filter == option), onClick = { filter = option },
+                        colors = RadioButtonColors(
+                            MaterialTheme.colorScheme.onPrimary,
+                            MaterialTheme.colorScheme.onPrimary,
+                            MaterialTheme.colorScheme.secondary,
+                            MaterialTheme.colorScheme.secondary
+                        )
+                    )
                     Text(text = option)
                 }
             }
@@ -181,7 +189,7 @@ fun ShowAllIncomes(modifier: Modifier, navigateTo: () -> Unit, context: Context,
                         Text(
                             modifier = modifier.padding(8.dp, 4.dp),
                             text = "Preço: ${income["Value"]}",
-                            color = if(income["Profit"] as Boolean) light_Positive else Negative
+                            color = if(income["Profit"] as Boolean) positiveLight else negativeLight
                         )
                         Text(
                             modifier = modifier.padding(8.dp, 4.dp),
@@ -227,7 +235,7 @@ fun ShowAllIncomes(modifier: Modifier, navigateTo: () -> Unit, context: Context,
                 Spacer(modifier = modifier.weight(1f))
 
 
-                if (incomes?.count() == 10) {
+                if (incomes.count() == 10) {
                     IconButton(onClick = { offset += 10 }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -242,12 +250,11 @@ fun ShowAllIncomes(modifier: Modifier, navigateTo: () -> Unit, context: Context,
 
 @Composable
 fun OptionsIncomeAlert(modifier: Modifier = Modifier, id: Int, navigateToEdit: () -> Unit, context: Context, dismiss: () -> Unit ) {
-    val income = Income(null)
+    val income = Income()
     var delete by remember { mutableStateOf(false) }
-    AlertDialog( modifier = modifier.size(250.dp, 150.dp),
-        onDismissRequest = dismiss,
+    AlertDialog(onDismissRequest = dismiss,
         text = { Text(text = "O que deseja fazer com a nota Nº${id}") },
-        buttons = {
+        confirmButton = {
             Row(modifier = modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center) {
                 Button(onClick = navigateToEdit) {
@@ -262,25 +269,19 @@ fun OptionsIncomeAlert(modifier: Modifier = Modifier, id: Int, navigateToEdit: (
     )
 
     if (delete) {
-        AlertDialog( modifier = modifier.size(250.dp, 150.dp),
-            onDismissRequest = dismiss,
+        AlertDialog(onDismissRequest = dismiss,
             text = { Text(text = "Deseja realmente deletar a nota fiscal Nº ${id}?") },
-            buttons = {
-                Row(modifier = modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center) {
-                    Button(onClick = { income.deleteIncome(context, null, id)
-                                    dismiss()}) {
-                        Text(text = "Deletar")
-                    }
-                    Spacer(modifier = modifier.width(10.dp))
-                    Button(onClick = dismiss) {
-                        Text(text = "Cancelar")
-                    }
+            confirmButton = {
+                Button(onClick = { income.deleteIncome(context, null, id)
+                                dismiss()}) {
+                    Text(text = "Deletar")
                 }
-            })
+            },
+            dismissButton = { Button(onClick = dismiss) {
+                Text(text = "Cancelar")
+            } })
     }
 }
-
 
 @Composable
 fun IncomeStatus(modifier: Modifier, context: Context, timeStamp: String) {
@@ -299,9 +300,9 @@ fun IncomeStatus(modifier: Modifier, context: Context, timeStamp: String) {
                     modifier = modifier
                         .background(
                             when (status.key) {
-                                "Total" -> MaterialTheme.colorScheme.surfaceContainer
-                                "Positivo" -> Positive
-                                "Negativo" -> Negative
+                                "Total" -> MaterialTheme.colorScheme.background
+                                "Positivo" -> positiveLight
+                                "Negativo" -> negativeLight
                                 else -> MaterialTheme.colorScheme.background
                             },
                             shape = RoundedCornerShape(10.dp)
@@ -311,8 +312,8 @@ fun IncomeStatus(modifier: Modifier, context: Context, timeStamp: String) {
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(text = "R$: ${status.value}")
-                    Text(text = "Valor ${status.key}")
+                    Text(text = "R$: ${status.value}", color = if (status.key == "Total") MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.background)
+                    Text(text = "Valor ${status.key}", color = if (status.key == "Total") MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.background)
                 }
                 if(status.key != "Negativo")
                     Spacer(modifier = modifier.width(10.dp))

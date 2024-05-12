@@ -26,6 +26,27 @@ class NumberFormatter {
         return "${intPart},${fractionPart}"
     }
 
+    fun doubleFormatter(value: String,
+                        numberOfDecimals: Int = 2): Double {
+        val intPart = value
+            .dropLast(numberOfDecimals)
+            .reversed()
+            .ifEmpty {
+                "0"
+            }
+
+        val fractionPart = value.takeLast(numberOfDecimals).let {
+            if (it.length != numberOfDecimals) {
+                List(numberOfDecimals - it.length) {
+                    0
+                }.joinToString("") + it
+            } else {
+                it
+            }
+        }
+        return "${intPart}.${fractionPart}".toDouble()
+    }
+
     fun currencyFormatterFloat(value: Float,
                                numberOfDecimals: Int = 2): String{
         val valueString = String.format("%.2f", value)

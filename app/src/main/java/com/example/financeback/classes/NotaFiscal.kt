@@ -10,13 +10,27 @@ import com.example.financeback.utils.NumberFormatter
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-class Income(userID: Int? = null) {
-    private var userID: Int? = if (userID == null) userID else null
-    private var incomeID: Int? = null
-    var value: Float? = null
-    var name: String? = null
-    var dateStamp: Long? = null
+data class IncomeInfo(
+    var value: Double = 0.0,
+    var name: String = "",
+    var date: Long = System.currentTimeMillis(),
+    var description: String = "",
     var profit: Boolean = false
+){
+    fun missingParam(): Array<String> {
+        var missingParams = arrayOf<String>()
+        if (value == 0.0)
+            missingParams += "Valor"
+        if (name.isEmpty())
+            missingParams += "Nome"
+        if (date == 0L)
+            missingParams += "Data"
+
+        return missingParams
+    }
+}
+
+class Income() {
 
     fun getIncomes(context: Context,
                    limit: Int,
@@ -137,7 +151,7 @@ class Income(userID: Int? = null) {
                 arrayOf("1", timeStamp, timeStamp, "0")
             ).use { cursor ->
                 if (cursor.moveToFirst()){
-                    results["Total"] = cursor.getFloat(cursor.getColumnIndexOrThrow("positive")).minus(cursor.getInt(cursor.getColumnIndexOrThrow("negative")))
+                    results["Total"] = cursor.getFloat(cursor.getColumnIndexOrThrow("negative")).minus(cursor.getFloat(cursor.getColumnIndexOrThrow("positive")))
                     results["Positivo"] = cursor.getFloat(cursor.getColumnIndexOrThrow("positive"))
                     results["Negativo"] = cursor.getFloat(cursor.getColumnIndexOrThrow("negative"))
                 }
@@ -154,24 +168,19 @@ class Income(userID: Int? = null) {
         }
     }
 
-    fun saveIncome(context: Context, value: Double, name: String, dateStamp: Long, profit: Boolean, description: String): Long? {
-//        Salvar nota com valor X, name X, data x e se for ou nao lucro
+    fun saveIncome(context: Context, incomeInfo: IncomeInfo): Boolean {
         val values = ContentValues().apply {
-            put(DatabaseHelper.INCOME.COLUMN_VALUE, value)
-            put(DatabaseHelper.INCOME.COLUMN_NAME, name)
-            put(DatabaseHelper.INCOME.COLUMN_DATESTAMP, System.currentTimeMillis())
-            put(DatabaseHelper.INCOME.COLUMN_PROFIT, profit)
-            put(DatabaseHelper.INCOME.COLUMN_DESCRIPTION, description)
+            put(DatabaseHelper.INCOME.COLUMN_VALUE, incomeInfo.value)
+            put(DatabaseHelper.INCOME.COLUMN_NAME, incomeInfo.name)
+            put(DatabaseHelper.INCOME.COLUMN_DATESTAMP, incomeInfo.date)
+            put(DatabaseHelper.INCOME.COLUMN_PROFIT, incomeInfo.profit)
+            put(DatabaseHelper.INCOME.COLUMN_DESCRIPTION, incomeInfo.description)
         }
 
         try {
             val databaseCursor = DatabaseHelper(context).writableDatabase
 
-            val row: Long = databaseCursor.insert(DatabaseHelper.INCOME.TABLE_NAME, null, values)
-            if (row.toInt() == -1)
-                return null
-            return row
-
+            return databaseCursor.insert(DatabaseHelper.INCOME.TABLE_NAME, null, values).toInt() != -1
         }catch (e: SQLiteException){
             throw e
         }
@@ -239,11 +248,11 @@ class Income(userID: Int? = null) {
         }
     }
 
-    fun generateReport(userID: Int? = this.userID){
+    fun generateReport(){
 //        TODO ("Listar e calcular o total de ganho, perda e valor total do usuario X dentro de um mes")
     }
 
-    fun exportReport(userID: Int? = this.userID){
+    fun exportReport(){
 //        TODO("Exportar em o relatorio do usuario X")
     }
 
