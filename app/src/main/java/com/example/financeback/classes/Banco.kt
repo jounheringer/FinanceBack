@@ -10,10 +10,10 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val TABLE_NAME = "income"
         const val COLUMN_ID = "ID"
         const val COLUMN_USER = "UserID"
+        const val COLUMN_CATEGORY_ID = "CategoryID"
         const val COLUMN_VALUE = "Value"
         const val COLUMN_NAME = "Name"
         const val COLUMN_DATESTAMP = "DateStamp"
-        const val COLUMN_PROFIT = "Profit"
         const val COLUMN_DESCRIPTION = "Description"
     }
 
@@ -28,8 +28,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     object USER_LOGS {
         const val TABLE_NAME = "user_logs"
         const val COLUMN_ID = "ID"
-        const val COLUMN_USER_ID = "UserID"
-        const val COLUMN_NAME = "Name"
         const val COLUMN_USERNAME = "UserName"
         const val COLUMN_REMEMBER = "Remember"
         const val COLUMN_DATE = "LoginDate"
@@ -40,13 +38,13 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val TABLE_NAME = "categories"
         const val COLUMN_ID = "ID"
         const val COLUMN_USER_ID = "UserID"
-        const val COLUMN_NAME = "Name"
+        const val COLUMN_NAME = "CategoryName"
         const val COLUMN_PROFIT = "Profit"
         const val COLUMN_DEFAULT_CATEGORY = "DefaultCategory"
     }
     companion object {
         const val DATABASE_NAME = "FINANCEBACK"
-        const val DATABASE_VERSION = 14
+        const val DATABASE_VERSION = 19
     }
 
     private val CREATE_CATEGORIES =
@@ -62,32 +60,30 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     private val POPULATE_CATEGORIES =
         "INSERT INTO ${CATEGORIES.TABLE_NAME}" +
                 "(${CATEGORIES.COLUMN_NAME}, ${CATEGORIES.COLUMN_PROFIT}, ${CATEGORIES.COLUMN_DEFAULT_CATEGORY})" +
-                "VALUES (\"VENDA\", TRUE, TRUE)," +
-                "(\"COMPRA\", TRUE, TRUE)"
+                "VALUES (\"Venda\", TRUE, TRUE)," +
+                "(\"Compra\", FALSE, TRUE)"
 
     private val CREATE_USER_LOGS =
         "CREATE TABLE IF NOT EXISTS ${USER_LOGS.TABLE_NAME}(" +
                 "${USER_LOGS.COLUMN_ID} INTEGER PRIMARY KEY," +
-                "${USER_LOGS.COLUMN_USER_ID} INTEGER," +
-                "${USER_LOGS.COLUMN_NAME} TEXT DEFAULT NULL," +
                 "${USER_LOGS.COLUMN_USERNAME} TEXT DEFAULT NULL," +
                 "${USER_LOGS.COLUMN_PASSWORD} TEXT DEFAULT NULL," +
                 "${USER_LOGS.COLUMN_REMEMBER} BOOLEAN DEFAULT FALSE," +
-                "${USER_LOGS.COLUMN_DATE} INTEGER DEFAULT NULL," +
-                "FOREIGN KEY (${USER_LOGS.COLUMN_USER_ID})" +
-                "REFERENCES ${USERS.TABLE_NAME}(${USERS.COLUMN_ID}))"
+                "${USER_LOGS.COLUMN_DATE} INTEGER DEFAULT NULL)"
 
     private val CREATE_INCOME =
         "CREATE TABLE IF NOT EXISTS ${INCOME.TABLE_NAME}(" +
                 "${INCOME.COLUMN_ID} INTEGER PRIMARY KEY," +
                 "${INCOME.COLUMN_USER} INTEGER," +
+                "${INCOME.COLUMN_CATEGORY_ID} INTEGER," +
                 "${INCOME.COLUMN_VALUE} DECIMAL(10, 2) DEFAULT NULL," +
                 "${INCOME.COLUMN_NAME} TEXT DEFAULT NULL," +
                 "${INCOME.COLUMN_DATESTAMP} INTEGER DEFAULT NULL," +
-                "${INCOME.COLUMN_PROFIT} BOOLEAN DEFAULT FALSE," +
                 "${INCOME.COLUMN_DESCRIPTION} TEXT DEFAULT NULL," +
                 "FOREIGN KEY (${INCOME.COLUMN_USER})" +
-                "REFERENCES ${USERS.TABLE_NAME}(${USERS.COLUMN_ID}))"
+                "REFERENCES ${USERS.TABLE_NAME}(${USERS.COLUMN_ID})," +
+                "FOREIGN KEY (${INCOME.COLUMN_CATEGORY_ID})" +
+                "REFERENCES ${CATEGORIES.TABLE_NAME}(${CATEGORIES.COLUMN_ID}))"
 
     private val CREATE_USERS =
         "CREATE TABLE IF NOT EXISTS ${USERS.TABLE_NAME}(" +
@@ -113,6 +109,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             db.execSQL("DROP TABLE IF EXISTS ${INCOME.TABLE_NAME}")
             db.execSQL("DROP TABLE IF EXISTS ${USERS.TABLE_NAME}")
             db.execSQL("DROP TABLE IF EXISTS ${USER_LOGS.TABLE_NAME}")
+            db.execSQL("DROP TABLE IF EXISTS ${CATEGORIES.TABLE_NAME}")
             onCreate(db)
         }catch (e: SQLException){
             throw e

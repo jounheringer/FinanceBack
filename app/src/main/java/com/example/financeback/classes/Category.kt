@@ -5,6 +5,7 @@ import android.content.Context
 import android.database.sqlite.SQLiteException
 
 data class CategoryInfo(
+    var id: Int = -1,
     var name: String = "",
     var profit: Boolean = false
 )
@@ -18,7 +19,7 @@ class Category {
 
             dataBaseCursor.query(
                 DatabaseHelper.CATEGORIES.TABLE_NAME,
-                arrayOf(DatabaseHelper.CATEGORIES.COLUMN_NAME, DatabaseHelper.CATEGORIES.COLUMN_PROFIT),
+                arrayOf(DatabaseHelper.CATEGORIES.COLUMN_ID, DatabaseHelper.CATEGORIES.COLUMN_NAME, DatabaseHelper.CATEGORIES.COLUMN_PROFIT),
                 "${DatabaseHelper.CATEGORIES.COLUMN_USER_ID} = ? OR ${DatabaseHelper.CATEGORIES.COLUMN_DEFAULT_CATEGORY} = ?",
                 arrayOf(userID.toString(), "1"),
                 null,
@@ -29,6 +30,8 @@ class Category {
                 if (cursor.moveToFirst()) {
                     do {
                         val categoryInfo = CategoryInfo()
+                        categoryInfo.id =
+                            cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.CATEGORIES.COLUMN_ID))
                         categoryInfo.name =
                             cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.CATEGORIES.COLUMN_NAME))
                         categoryInfo.profit =

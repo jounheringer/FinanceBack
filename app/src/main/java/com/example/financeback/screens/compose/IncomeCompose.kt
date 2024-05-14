@@ -87,7 +87,7 @@ fun IncomeInputs(modifier: Modifier, context: Context, userID: Int){
     var newCategoryProfit by remember { mutableStateOf(false) }
 
     if (incomeSaved) {
-        incomeInfo = IncomeInfo()
+        incomeInfo.name = ""
         number = ""
     }
 
@@ -107,7 +107,7 @@ fun IncomeInputs(modifier: Modifier, context: Context, userID: Int){
                     Text(text = "Negativo")
                 }
             }},
-            confirmButton = { Button(onClick = { category.saveCategoryByUser(context, userID, CategoryInfo(newCategoryName, newCategoryProfit))
+            confirmButton = { Button(onClick = { category.saveCategoryByUser(context, userID, CategoryInfo(0, newCategoryName, newCategoryProfit))
                 newCategoryName = ""
                 newCategory = false },
                 enabled = newCategoryName.isNotEmpty()) {
@@ -185,12 +185,12 @@ fun IncomeInputs(modifier: Modifier, context: Context, userID: Int){
 
     Column(modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally) {
-        SaveIncome(context, incomeInfo, number) { incomeSaved = it }
+        SaveIncome(context, incomeInfo, number, selectedCategory) { incomeSaved = it }
     }
 }
 
 @Composable
-fun SaveIncome(context: Context, incomeInfo: IncomeInfo, number: String, incomeSaved: (Boolean) -> Unit){
+fun SaveIncome(context: Context, incomeInfo: IncomeInfo, number: String, categoryInfo: CategoryInfo, incomeSaved: (Boolean) -> Unit){
     val income = Income()
     var missingParams by remember { mutableStateOf(false) }
     var saveIncomeResult by remember { mutableStateOf(false) }
@@ -206,7 +206,7 @@ fun SaveIncome(context: Context, incomeInfo: IncomeInfo, number: String, incomeS
         if(missingValues.isNotEmpty())
             missingParams = true
         else
-            saveIncomeResult = income.saveIncome(context = context, incomeInfo = incomeInfo) }) {
+            saveIncomeResult = income.saveIncome(context = context, incomeInfo = incomeInfo, categoryInfo) }) {
         Text(text = "Salvar")
     }
 

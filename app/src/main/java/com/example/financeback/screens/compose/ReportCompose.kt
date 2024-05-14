@@ -145,7 +145,7 @@ fun ShowAllIncomes(modifier: Modifier, navigateTo: () -> Unit, context: Context,
         offset = offset,
         filter = filter,
         timeStamp = dateStamp,
-        orderByFlow = orderBy)
+        orderBy = orderBy)
 
     Column(modifier = modifier
         .padding(0.dp, 6.dp)
@@ -196,6 +196,10 @@ fun ShowAllIncomes(modifier: Modifier, navigateTo: () -> Unit, context: Context,
                             text = "Data: ${SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(
                                 income["Date"]
                             )}"
+                        )
+                        Text(
+                            modifier = modifier.padding(8.dp, 4.dp),
+                            text = "Categoria: ${income.getOrDefault("CategoryName", "")}"
                         )
                         Text(
                             modifier = modifier.padding(8.dp, 4.dp),

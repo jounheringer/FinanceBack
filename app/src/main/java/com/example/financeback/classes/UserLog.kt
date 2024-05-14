@@ -11,7 +11,6 @@ class UserLog {
         val userInfo = user.getCredentials(context, credentials)
         val values = ContentValues().apply {
             put(DatabaseHelper.USER_LOGS.COLUMN_USERNAME, userInfo.login)
-            put(DatabaseHelper.USER_LOGS.COLUMN_NAME, userInfo.fullName)
             put(DatabaseHelper.USER_LOGS.COLUMN_PASSWORD, userInfo.password)
             put(DatabaseHelper.USER_LOGS.COLUMN_REMEMBER, credentials.remember)
             put(DatabaseHelper.USER_LOGS.COLUMN_DATE, System.currentTimeMillis())

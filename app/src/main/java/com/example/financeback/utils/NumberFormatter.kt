@@ -30,7 +30,6 @@ class NumberFormatter {
                         numberOfDecimals: Int = 2): Double {
         val intPart = value
             .dropLast(numberOfDecimals)
-            .reversed()
             .ifEmpty {
                 "0"
             }

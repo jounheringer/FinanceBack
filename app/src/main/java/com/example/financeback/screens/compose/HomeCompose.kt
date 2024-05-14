@@ -66,14 +66,11 @@ fun HomeScreen(modifier: Modifier = Modifier, navigateTo: () -> Unit) {
 
 @Composable
 fun RecentIncomes(modifier: Modifier = Modifier, context: Context, navigateTo: () -> Unit, date: String) {
-    val state = rememberScrollState()
     val income = Income()
-    val recentIncomes = income.getIncomes(context, limit = 5, offset = 0, filter = "Total", timeStamp = date)
+    val recentIncomes = income.getIncomes(context, 5, timeStamp = date)
 
     var options by remember { mutableStateOf(false) }
     var incomeToProcess by remember { mutableIntStateOf(0) }
-
-    LaunchedEffect(Unit) { state.animateScrollTo(100)}
 
     Column(
         modifier
@@ -137,6 +134,7 @@ fun RecentIncomes(modifier: Modifier = Modifier, context: Context, navigateTo: (
                                 ), color = MaterialTheme.colorScheme.onBackground
                             )
                             Text(text = "Descrição: ${income["Description"]}", color = MaterialTheme.colorScheme.onBackground)
+                            Text(text = "Categoria: ${income["CategoryName"]}", color = MaterialTheme.colorScheme.onBackground)
                         }
                     }
 
