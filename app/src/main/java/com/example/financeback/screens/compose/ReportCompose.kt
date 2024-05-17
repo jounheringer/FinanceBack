@@ -1,6 +1,8 @@
 package com.example.financeback.screens.compose
 
 import android.content.Context
+import android.health.connect.datatypes.units.Length
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -219,10 +221,11 @@ fun ShowAllIncomes(modifier: Modifier, navigateTo: () -> Unit, context: Context,
         }
 
         if (options) {
-            OptionsIncomeAlert(id = incomeToProcess,
-                navigateToEdit = navigateTo,
-                context = context,
-                dismiss = { options = false })
+            OptionsIncomeAlert(modifier,
+                incomeToProcess,
+                navigateTo,
+                context
+            ) { options = false }
         }
 
         if (incomesCount > 10){
@@ -276,8 +279,9 @@ fun OptionsIncomeAlert(modifier: Modifier = Modifier, id: Int, navigateToEdit: (
         AlertDialog(onDismissRequest = dismiss,
             text = { Text(text = "Deseja realmente deletar a nota fiscal Nº ${id}?") },
             confirmButton = {
-                Button(onClick = { income.deleteIncome(context, null, id)
-                                dismiss()}) {
+                Button(onClick = { if (income.deleteIncome(context, null, id))
+                    dismiss()
+                }) {
                     Text(text = "Deletar")
                 }
             },
@@ -290,7 +294,7 @@ fun OptionsIncomeAlert(modifier: Modifier = Modifier, id: Int, navigateToEdit: (
 @Composable
 fun IncomeStatus(modifier: Modifier, context: Context, timeStamp: String) {
     val income = Income()
-    val incomeStatus = income.getIncomeTotals(context, timeStamp)
+    val incomeStatus by remember { mutableStateOf(income.getIncomeTotals(context, timeStamp)) }
     val state = rememberScrollState()
 
     Column(modifier = modifier.padding(0.dp, 12.dp)) {

@@ -15,7 +15,7 @@ class Category {
         val returnCategories = mutableListOf<CategoryInfo>()
 
         try {
-            val dataBaseCursor = DatabaseHelper(context).writableDatabase
+            val dataBaseCursor = DatabaseHelper(context).readableDatabase
 
             dataBaseCursor.query(
                 DatabaseHelper.CATEGORIES.TABLE_NAME,
@@ -41,6 +41,36 @@ class Category {
                 }
             }
             return returnCategories
+        }catch (e: SQLiteException){
+            throw e
+        }
+    }
+
+    fun getCategoryByID(context: Context, categoryID: Int): CategoryInfo {
+        val categoryInfo = CategoryInfo()
+
+        try {
+            val databaseCursor = DatabaseHelper(context).readableDatabase
+
+            databaseCursor.query(
+                DatabaseHelper.CATEGORIES.TABLE_NAME,
+                arrayOf(DatabaseHelper.CATEGORIES.COLUMN_ID, DatabaseHelper.CATEGORIES.TABLE_NAME, DatabaseHelper.CATEGORIES.COLUMN_PROFIT),
+                "${DatabaseHelper.CATEGORIES.COLUMN_ID} = ?",
+                arrayOf(categoryID.toString()),
+                null,
+                null,
+                null,
+                null
+            ).use {cursor ->
+                categoryInfo.id =
+                    cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.CATEGORIES.COLUMN_ID))
+                categoryInfo.name =
+                    cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.CATEGORIES.COLUMN_NAME))
+                categoryInfo.profit =
+                    cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.CATEGORIES.COLUMN_PROFIT)) == 1
+            }
+
+            return categoryInfo
         }catch (e: SQLiteException){
             throw e
         }

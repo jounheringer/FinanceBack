@@ -38,7 +38,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.financeback.classes.Income
+import com.example.financeback.screens.Screen
 import com.example.financeback.ui.theme.ExtendedColorScheme
 import com.example.financeback.ui.theme.negativeLight
 import com.example.financeback.ui.theme.positiveLight
@@ -48,7 +51,7 @@ import java.util.Calendar
 import java.util.Locale
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier, navigateTo: () -> Unit) {
+fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
     val calendar = Calendar.getInstance()
     val date = "${calendar.get(Calendar.YEAR)}-${NumberFormatter().decimalFormatter((calendar.get(Calendar.MONTH)+1).toString())}"
     val context = LocalContext.current
@@ -60,12 +63,12 @@ fun HomeScreen(modifier: Modifier = Modifier, navigateTo: () -> Unit) {
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         IncomeStatus(modifier, context, date)
-        RecentIncomes(context = context, navigateTo = navigateTo, date = date)
+        RecentIncomes(modifier, context, navController, date)
     }
 }
 
 @Composable
-fun RecentIncomes(modifier: Modifier = Modifier, context: Context, navigateTo: () -> Unit, date: String) {
+fun RecentIncomes(modifier: Modifier = Modifier, context: Context, navController: NavController, date: String) {
     val income = Income()
     val recentIncomes = income.getIncomes(context, 5, timeStamp = date)
 
@@ -139,25 +142,26 @@ fun RecentIncomes(modifier: Modifier = Modifier, context: Context, navigateTo: (
                     }
 
                     if (options) {
-                        OptionsIncomeAlert(id = incomeToProcess,
-                            navigateToEdit = navigateTo,
-                            context = context,
-                            dismiss = { options = false })
+                        OptionsIncomeAlert(modifier,
+                            incomeToProcess,
+                            { navController.navigate("${Screen.Edit.route}/$incomeToProcess"){
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                            } },
+                            context,
+                            { options = false })
                     }
                 }
             }
         }else {
-            Row(modifier = modifier.fillMaxWidth().padding(15.dp),
+            Row(modifier = modifier
+                .fillMaxWidth()
+                .padding(15.dp),
                 horizontalArrangement = Arrangement.Center) {
                 Text(text = "Nenhuma nota criada aperte no icone '+' para adicionar uma nova nota",
                     textAlign = TextAlign.Center)
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun HomeScreenPreview() {
-    HomeScreen(navigateTo = {})
 }

@@ -47,15 +47,19 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.example.financeback.classes.Income
 import com.example.financeback.ui.theme.AppTheme
 import com.example.financeback.classes.MenuItem
 import com.example.financeback.classes.User
 import com.example.financeback.classes.UserInfo
 import com.example.financeback.screens.Screen
+import com.example.financeback.screens.compose.EditScreen
 import com.example.financeback.screens.compose.HomeScreen
 import com.example.financeback.screens.compose.IncomeScreen
 import com.example.financeback.screens.compose.ProfileScreen
@@ -201,15 +205,7 @@ fun FinanceBackScreen(modifier: Modifier = Modifier, userID: Int, context: Conte
                     Modifier.padding(innerPadding)
                 ) {
                     composable(Screen.Home.route) {
-                        HomeScreen(navigateTo = {
-                            navController.navigate(Screen.Income.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                screenTitle = Screen.Income.title
-                            }
-                        })
+                        HomeScreen(navController = navController)
                     }
                     composable(Screen.Report.route) {
                         ReportScreen(navigateToEdit = {
@@ -224,6 +220,12 @@ fun FinanceBackScreen(modifier: Modifier = Modifier, userID: Int, context: Conte
                         )
                     }
                     composable(Screen.Income.route) { IncomeScreen(userID = userID) }
+
+                    composable("${Screen.Edit.route}/{incomeID}",
+                        listOf(navArgument(name = "incomeID"){
+                            type = NavType.IntType
+                        })) { bacStackEntry ->
+                        bacStackEntry.arguments?.let { EditScreen(income = Income().getIncomeByID(context, it.getInt("incomeID")), userID = userID, navController = navController) } }
 
                     composable(Screen.Profile.route) {
                         ProfileScreen(

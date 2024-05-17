@@ -5,6 +5,7 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
@@ -14,6 +15,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 sealed class Screen(val route: String, val description: String, val icon: ImageVector, val title: String) {
     object Home : Screen("Home", "Home Screen", Icons.Filled.Home, "Bem Vindo")
     object Income : Screen("Income", "Add Income", Icons.Filled.Add, "Adicionar Nota Fiscal")
+    object Edit : Screen("Edit", "Edit income", Icons.Filled.Create, "Editar Nota")
     object Report : Screen("Report", "Report Screen", Icons.AutoMirrored.Filled.List, "Gerenciar Notas Fiscais")
     object Profile : Screen("Profile", "Profile Screen", Icons.Filled.Person, "Perfil")
     object Settings : Screen("Settings", "Settings Screen", Icons.Filled.Build, "Configurações")

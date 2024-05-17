@@ -2,15 +2,11 @@ package com.example.financeback.classes
 
 import android.content.ContentValues
 import android.content.Context
-import android.database.Cursor
 import android.database.sqlite.SQLiteException
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.example.financeback.utils.NumberFormatter
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 data class IncomeInfo(
+    var id: Int = -1,
     var value: Double = 0.0,
     var name: String = "",
     var date: Long = System.currentTimeMillis(),
@@ -89,6 +85,53 @@ class Income() {
         }
     }
 
+    fun getIncomeByID(context: Context, incomeID: Int): IncomeInfo {
+        val incomeInfo = IncomeInfo()
+        val selects = arrayOf(
+            DatabaseHelper.INCOME.COLUMN_ID,
+            DatabaseHelper.INCOME.COLUMN_NAME,
+            DatabaseHelper.INCOME.COLUMN_VALUE,
+            DatabaseHelper.INCOME.COLUMN_DATESTAMP,
+            DatabaseHelper.INCOME.COLUMN_DESCRIPTION,
+            DatabaseHelper.INCOME.COLUMN_CATEGORY_ID
+        )
+
+        try{
+
+            val databaseCursor = DatabaseHelper(context).readableDatabase
+
+            databaseCursor.query(
+                DatabaseHelper.INCOME.TABLE_NAME,
+                selects,
+                "${DatabaseHelper.INCOME.COLUMN_ID} = ?",
+                arrayOf(incomeID.toString()),
+                null,
+                null,
+                null,
+                null
+            ).use {cursor ->
+                if(cursor.moveToFirst()) {
+                    incomeInfo.id =
+                        cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_ID))
+                    incomeInfo.name =
+                        cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_NAME))
+                    incomeInfo.value =
+                        cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_VALUE))
+                    incomeInfo.date =
+                        cursor.getLong(cursor.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_DATESTAMP))
+                    incomeInfo.categoryID =
+                        cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_CATEGORY_ID))
+                    incomeInfo.description =
+                        cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_DESCRIPTION))
+                }
+            }
+
+            return incomeInfo
+        }catch(e: SQLiteException){
+            throw e
+        }
+    }
+
     fun getIncomesCount(context: Context, idUser: Int?, filter:String): Int{
         try {
             val databaseCursor = DatabaseHelper(context).writableDatabase
@@ -118,7 +161,7 @@ class Income() {
         }
     }
 
-    fun getIncomeTotals(context: Context, timeStamp: String/*user: Int*/): MutableMap<String, String> {
+    fun getIncomeTotals(context: Context, timeStamp: String/*user: Int*/): Map<String, String> {
 
         try {
             val databaseCursor = DatabaseHelper(context).writableDatabase
@@ -155,13 +198,14 @@ class Income() {
         }
     }
 
-    fun saveIncome(context: Context, incomeInfo: IncomeInfo, categoryInfo: CategoryInfo): Boolean {
+    fun saveIncome(context: Context, incomeInfo: IncomeInfo, categoryInfo: CategoryInfo, userID: Int): Boolean {
         val values = ContentValues().apply {
             put(DatabaseHelper.INCOME.COLUMN_VALUE, incomeInfo.value)
             put(DatabaseHelper.INCOME.COLUMN_NAME, incomeInfo.name)
             put(DatabaseHelper.INCOME.COLUMN_DATESTAMP, incomeInfo.date)
             put(DatabaseHelper.INCOME.COLUMN_DESCRIPTION, incomeInfo.description)
             put(DatabaseHelper.INCOME.COLUMN_CATEGORY_ID, categoryInfo.id)
+            put(DatabaseHelper.INCOME.COLUMN_USER, userID)
         }
 
         try {
@@ -191,22 +235,22 @@ class Income() {
         }
     }
 
-    fun editIncome(context: Context, userID: Int?, incomeID: Int, value: Float, name: String, profit: Boolean){
-//        atualizar dados de uma nota fiscal especifica
+    fun editIncome(context: Context, userID: Int, income: IncomeInfo): Boolean{
         val values = ContentValues().apply {
-            put(DatabaseHelper.INCOME.COLUMN_VALUE, value)
-            put(DatabaseHelper.INCOME.COLUMN_NAME, name)
+            put(DatabaseHelper.INCOME.COLUMN_VALUE, income.value)
+            put(DatabaseHelper.INCOME.COLUMN_NAME, income.name)
+            put(DatabaseHelper.INCOME.COLUMN_DATESTAMP, income.date)
+            put(DatabaseHelper.INCOME.COLUMN_CATEGORY_ID, income.categoryID)
+            put(DatabaseHelper.INCOME.COLUMN_DESCRIPTION, income.description)
         }
 
-        val where = "${DatabaseHelper.INCOME.COLUMN_ID} = ? ${if (userID != null) "AND ${DatabaseHelper.INCOME.COLUMN_USER} = ?" else ""}"
-        var whereArgs = arrayOf(incomeID.toString())
-        if (userID != null)
-            whereArgs += userID.toString()
+        val where = "${DatabaseHelper.INCOME.COLUMN_USER} = ? AND ${DatabaseHelper.INCOME.COLUMN_ID} = ?"
+        val whereArgs = arrayOf(userID.toString(), income.id.toString())
 
         try {
             val databaseCursor = DatabaseHelper(context).writableDatabase
 
-            val delete = databaseCursor?.update(DatabaseHelper.INCOME.TABLE_NAME, values, where, whereArgs)
+            return databaseCursor.update(DatabaseHelper.INCOME.TABLE_NAME, values, where, whereArgs) > 0
         }catch (e: SQLiteException){
             throw e
         }

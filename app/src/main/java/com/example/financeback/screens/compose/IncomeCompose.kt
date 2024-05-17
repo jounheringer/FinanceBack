@@ -1,7 +1,6 @@
 package com.example.financeback.screens.compose
 
 import android.content.Context
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -54,7 +53,7 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 @Composable
-fun IncomeScreen(modifier:Modifier = Modifier, userID: Int) {
+fun IncomeScreen(modifier:Modifier = Modifier, userID: Int, incomeID: Int = -1) {
     val context = LocalContext.current
     Column(modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -185,28 +184,24 @@ fun IncomeInputs(modifier: Modifier, context: Context, userID: Int){
 
     Column(modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally) {
-        SaveIncome(context, incomeInfo, number, selectedCategory) { incomeSaved = it }
+        SaveIncome(context, incomeInfo, number, selectedCategory, { incomeSaved = it }, userID)
     }
 }
 
 @Composable
-fun SaveIncome(context: Context, incomeInfo: IncomeInfo, number: String, categoryInfo: CategoryInfo, incomeSaved: (Boolean) -> Unit){
+fun SaveIncome(context: Context, incomeInfo: IncomeInfo, number: String, categoryInfo: CategoryInfo, incomeSaved: (Boolean) -> Unit, userID: Int){
     val income = Income()
     var missingParams by remember { mutableStateOf(false) }
     var saveIncomeResult by remember { mutableStateOf(false) }
-    var missingValues by remember { mutableStateOf<Array<String>>(arrayOf()) }
 
     Button(colors = ButtonColors(MaterialTheme.colorScheme.onPrimary,
         MaterialTheme.colorScheme.onBackground,
         MaterialTheme.colorScheme.errorContainer,
         MaterialTheme.colorScheme.error),onClick = {
-        if (number.isNotEmpty())
-            incomeInfo.value = NumberFormatter().doubleFormatter(number)
-        missingValues = incomeInfo.missingParam()
-        if(missingValues.isNotEmpty())
-            missingParams = true
-        else
-            saveIncomeResult = income.saveIncome(context = context, incomeInfo = incomeInfo, categoryInfo) }) {
+        incomeInfo.value = NumberFormatter().doubleFormatter(number)
+        missingParams = incomeInfo.missingParam().isNotEmpty()
+        if(!missingParams)
+            saveIncomeResult = income.saveIncome(context, incomeInfo, categoryInfo, userID) }) {
         Text(text = "Salvar")
     }
 
@@ -214,7 +209,7 @@ fun SaveIncome(context: Context, incomeInfo: IncomeInfo, number: String, categor
         AlertDialog(
             text = {
                 Column {
-                    missingValues.forEach { value ->
+                    incomeInfo.missingParam().forEach { value ->
                         Text(text = "*${value}")}
                 }
             },
