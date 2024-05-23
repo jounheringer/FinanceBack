@@ -22,7 +22,7 @@ Detalhes do stack:
 1. Clonar o projeto
 2. Executar passos detalhados na [documentação](https://developer.android.com/studio/run).
 
-## Requerimentos
-TODO
+## Requerimentos (celular)
+Android 13 (API level 33) 
 
 ### Projeto academico.
