@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
+//    TODO add datecreated
     object INCOME {
         const val TABLE_NAME = "income"
         const val COLUMN_ID = "ID"

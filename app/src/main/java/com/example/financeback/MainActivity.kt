@@ -40,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -58,6 +59,7 @@ import com.example.financeback.ui.theme.AppTheme
 import com.example.financeback.classes.MenuItem
 import com.example.financeback.classes.User
 import com.example.financeback.classes.UserInfo
+import com.example.financeback.screens.LoginScreen
 import com.example.financeback.screens.Screen
 import com.example.financeback.screens.compose.EditScreen
 import com.example.financeback.screens.compose.HomeScreen
@@ -65,6 +67,7 @@ import com.example.financeback.screens.compose.IncomeScreen
 import com.example.financeback.screens.compose.ProfileScreen
 import com.example.financeback.screens.compose.ReportScreen
 import com.example.financeback.ui.theme.negativeLight
+import com.example.financeback.utils.Utils
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -105,44 +108,70 @@ fun FinanceBackScreen(modifier: Modifier = Modifier, userID: Int, context: Conte
             DrawerHeader(modifier, userInfo)
             HorizontalDivider()
             DrawerItems(modifier = modifier,
-                navController = navController,
-                closeDrawer = { scope.launch{drawerState.close() }},
-                changeScreenTitle = {screenTitle = it},
                 items = listOf(
                     MenuItem(
                         id = Screen.Profile.route,
                         title = Screen.Profile.title,
                         contentDescription = Screen.Profile.description,
                         icon = Screen.Profile.icon,
-                        sensitiveItem = false
+                        sensitiveItem = false,
+                        onClick = {navController.navigate(Screen.Profile.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                }
+                            scope.launch{drawerState.close() }
+                            screenTitle = Screen.Profile.title}
                     ),
                     MenuItem(
                         id = Screen.Settings.route,
                         title = Screen.Settings.title,
                         contentDescription = Screen.Settings.description,
                         icon = Screen.Settings.icon,
-                        sensitiveItem = false
+                        sensitiveItem = false,
+                        onClick = {navController.navigate(Screen.Settings.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                }
+                        scope.launch{drawerState.close() }
+                            screenTitle = Screen.Settings.title}
                     ),
                     MenuItem(
                         id = Screen.Help.route,
                         title = Screen.Help.title,
                         contentDescription = Screen.Help.description,
                         icon = Screen.Help.icon,
-                        sensitiveItem = false
+                        sensitiveItem = false,
+                        onClick = {navController.navigate(Screen.Help.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                }
+                        scope.launch{drawerState.close() }
+                            screenTitle = Screen.Help.title}
                     ),
                     MenuItem(
                         id = Screen.LogOut.route,
                         title = Screen.LogOut.title,
                         contentDescription = Screen.LogOut.description,
                         icon = Screen.LogOut.icon,
-                        sensitiveItem = false
+                        sensitiveItem = false,
+                        onClick = { Utils().logout(context, LoginScreen::class.java, "LogOut") }
                     ),
                     MenuItem(
                         id = Screen.Restart.route,
                         title = Screen.Restart.title,
                         contentDescription = Screen.Restart.description,
                         icon = Screen.Restart.icon,
-                        sensitiveItem = true
+                        sensitiveItem = true,
+                        onClick = {navController.navigate(Screen.Restart.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                }
+                        scope.launch{drawerState.close() }
+                        screenTitle = Screen.Restart.title}
                     )
                 ))
         } })
@@ -246,13 +275,6 @@ fun FinanceBackScreen(modifier: Modifier = Modifier, userID: Int, context: Conte
                             Toast.LENGTH_SHORT
                         ).show()
                     }
-                    composable(Screen.LogOut.route) {
-                        Toast.makeText(
-                            context,
-                            Screen.LogOut.route,
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
                     composable(Screen.Restart.route) {
                         Toast.makeText(
                             context,
@@ -283,24 +305,14 @@ fun DrawerHeader(modifier: Modifier, userInfo: UserInfo) {
 }
 
 @Composable
-fun DrawerItems(modifier: Modifier, items: List<MenuItem>, navController: NavController, closeDrawer: () -> Unit, changeScreenTitle: (String) -> Unit) {
+fun DrawerItems(modifier: Modifier, items: List<MenuItem>) {
     Column {
         items.forEach { item ->
             Row(modifier = modifier
                 .padding(16.dp, 8.dp)
                 .fillMaxWidth()
                 .height(32.dp)
-                .clickable {
-                    navController.navigate(item.id) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                    changeScreenTitle(item.title)
-                    closeDrawer()
-                },
+                .clickable(onClick = item.onClick),
                 verticalAlignment = Alignment.CenterVertically) {
                 Icon(imageVector = item.icon,
                     contentDescription = item.contentDescription,

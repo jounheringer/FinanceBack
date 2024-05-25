@@ -1,5 +1,6 @@
 package com.example.financeback.screens.compose
 
+import android.icu.text.DateFormat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -46,6 +47,7 @@ import com.example.financeback.classes.IncomeInfo
 import com.example.financeback.screens.Screen
 import com.example.financeback.utils.CurrencyMask
 import com.example.financeback.utils.NumberFormatter
+import com.example.financeback.utils.PastOrPresentSelectableDates
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -55,8 +57,9 @@ fun EditScreen(modifier: Modifier = Modifier, income: IncomeInfo, userID: Int, n
     val context = LocalContext.current
     val category = Category()
     val categories = category.getCategoriesByUser(context, userID)
-    val datePickerState = rememberDatePickerState()
+    val datePickerState = rememberDatePickerState(selectableDates = PastOrPresentSelectableDates)
     val focusManager = LocalFocusManager.current
+    val dateFormatter = DateFormat.getDateInstance(DateFormat.MEDIUM, Locale("pt-br"))
 
     var editIncome by remember { mutableStateOf(income) }
     var selectedCategory by remember { mutableStateOf(categories[categories.indexOfFirst{it.id == income.categoryID}]) }
@@ -92,7 +95,7 @@ fun EditScreen(modifier: Modifier = Modifier, income: IncomeInfo, userID: Int, n
                     confirmButton = {
                         Button(onClick = {
                             datePickerState.selectedDateMillis?.let { millis ->
-                                income.date = millis
+                                editIncome.date = millis.plus(14400000)
                             }
                             showDatePicker = false
                         }) {
@@ -123,7 +126,7 @@ fun EditScreen(modifier: Modifier = Modifier, income: IncomeInfo, userID: Int, n
             )
 
             TextField(
-                value = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(editIncome.date),
+                value = dateFormatter.format(editIncome.date),
                 onValueChange = { },
                 modifier = modifier.onFocusEvent {
                     if (it.isFocused) {
@@ -161,7 +164,7 @@ fun EditScreen(modifier: Modifier = Modifier, income: IncomeInfo, userID: Int, n
                 value = editIncome.description,
                 onValueChange = { data -> editIncome = editIncome.copy(description = data) },
                 label = { Text(text = "Descrição") },
-                modifier = modifier.height(100.dp),
+                modifier = modifier.height(100.dp).fillMaxWidth(0.7f),
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
             )
 

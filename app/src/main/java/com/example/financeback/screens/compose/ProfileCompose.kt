@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Create
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -138,18 +140,19 @@ fun ProfileInfo(modifier: Modifier,
         .height(400.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceAround) {
-        OutlinedTextField(value = editUserInfo.userName, onValueChange = { data -> editUserInfo = editUserInfo.copy(userName = data) }, label = { Text(text = "Usuario")}, enabled = edit)
-        OutlinedTextField(value = editUserInfo.fullName, onValueChange = { data -> editUserInfo = editUserInfo.copy(fullName = data) }, label = { Text(text = "Nome Completo")}, enabled = edit)
-        OutlinedTextField(value = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(userInfo.dateCreated), onValueChange = {}, label = { Text(text = "Data de criação")}, enabled = false)
+        TextField(value = editUserInfo.userName, onValueChange = { data -> editUserInfo = editUserInfo.copy(userName = data) }, label = { Text(text = "Usuario")}, enabled = edit)
+        TextField(value = editUserInfo.fullName, onValueChange = { data -> editUserInfo = editUserInfo.copy(fullName = data) }, label = { Text(text = "Nome Completo")}, enabled = edit)
+        TextField(value = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(userInfo.dateCreated), onValueChange = {}, label = { Text(text = "Data de criação")}, enabled = false)
         Column(horizontalAlignment = Alignment.End) {
-            OutlinedTextField(
+            TextField(
                 value = "********",
                 onValueChange = {},
                 label = { Text(text = "Senha") },
                 enabled = false
             )
             TextButton(onClick = { changePassword(true) }) {
-                Text(text = "Alterar senha")
+                Text(text = "Alterar senha",
+                    color = MaterialTheme.colorScheme.onPrimary)
             }
         }
     }
@@ -170,23 +173,31 @@ fun ProfileOptions(modifier: Modifier,
         .padding(24.dp),
         horizontalArrangement = Arrangement.Center) {
         if (!edit) {
-            Button(onClick = { deleteUser(true) }) {
-                Text(text = "Deletar perfil")
-            }
+            CustomButton({ deleteUser(true) },
+                "Deletar Perfil")
             Spacer(modifier.width(24.dp))
-            Button(onClick = { enableEdit() }) {
-                Text(text = "Editar perfil")
-            }
+            CustomButton({ enableEdit() },
+                "EditarPerfil")
         } else {
-            Button(onClick = { enableEdit() }) {
-                Text(text = "Cancelar")
-            }
+            CustomButton({ enableEdit() },
+                "Cancelar")
             Spacer(modifier.width(24.dp))
-            Button(onClick = { userUpdated(user.editUser(context, userInfo))
-                    enableEdit() }) {
-                Text(text = "Salvar perfil")
-            }
+            CustomButton({ userUpdated(user.editUser(context, userInfo)) },
+                "Salvar Perfil")
         }
+    }
+}
+
+@Composable
+fun CustomButton(onClick: () -> Unit,
+                 text: String,
+                 colors: ButtonColors = ButtonColors(MaterialTheme.colorScheme.onPrimary,
+    MaterialTheme.colorScheme.onBackground,
+    MaterialTheme.colorScheme.errorContainer,
+    MaterialTheme.colorScheme.error)) {
+    Button(onClick = { onClick() },
+        colors = colors) {
+        Text(text = text)
     }
 }
 
@@ -210,9 +221,8 @@ fun ConfirmDelete(deleteUser: (Boolean) -> Unit, context: Context, userInfo: Use
                 }
             })
     if (userCanceled) {
-        val activity = LocalContext.current as MainActivity
         AlertDialog(onDismissRequest = {  },
-            confirmButton = { Button(onClick = { Utils().logout(activity, LoginScreen::class.java) }) {
+            confirmButton = { Button(onClick = { Utils().logout(context, LoginScreen::class.java, "LogOut") }) {
                 Text(text = "Ok") } },
             text = { Text(text = "Perfil cancelado") })
     }
@@ -239,6 +249,7 @@ fun ChangePassword(modifier: Modifier, userID: Int, changePassword: (Boolean) ->
     val context = LocalContext.current
     val user = User()
     AlertDialog(onDismissRequest = { changePassword(false) },
+        title = { Text(text = "Alterar Senha") },
         text = { Column(modifier= modifier
             .fillMaxWidth()
             .height(300.dp),

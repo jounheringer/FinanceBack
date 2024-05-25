@@ -6,9 +6,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -62,7 +66,9 @@ fun RegisterInputs(modifier: Modifier) {
 
     val context = LocalContext.current
 
-    Column(modifier = modifier.size(280.dp, 350.dp),
+    Column(modifier = modifier
+        .size(280.dp, 350.dp)
+        .imePadding(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween) {
         OutlinedTextField(value = userInfo.login,
@@ -81,16 +87,13 @@ fun RegisterInputs(modifier: Modifier) {
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
-                if (!showPassword) IconButton(onClick = { showPassword = true }) {
+                IconButton(onClick = { showPassword = !showPassword }) {
                     Icon(
-                        painter = painterResource(id = R.drawable.visibilidade),
-                        contentDescription = "Show Password"
+                        painter = painterResource(id = if (showPassword) R.drawable.visibilidade else R.drawable.olho),
+                        contentDescription = null
                     )
-                } else IconButton(onClick = { showPassword = false }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.olho),
-                        contentDescription = "Show Password"
-                    )}})
+                }
+            })
 
         OutlinedTextField(value = tempPassword,
             onValueChange = { tempPassword = it },
@@ -99,16 +102,13 @@ fun RegisterInputs(modifier: Modifier) {
             visualTransformation = if (showTempPassword) VisualTransformation.None else PasswordVisualTransformation(),
             isError = !userInfo.confirmPassword(tempPassword),
             trailingIcon = {
-                if (!showTempPassword) IconButton(onClick = { showTempPassword = true }) {
+                IconButton(onClick = { showTempPassword = !showTempPassword }) {
                     Icon(
-                        painter = painterResource(id = R.drawable.visibilidade),
-                        contentDescription = "Show Password"
+                        painter = painterResource(id = if (showTempPassword) R.drawable.visibilidade else R.drawable.olho),
+                        contentDescription = null
                     )
-                } else IconButton(onClick = { showTempPassword = false }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.olho),
-                        contentDescription = "Show Password"
-                    )}})
+                }
+            })
 
         Button(onClick = { if (!RegisterScreen().checkRegister(userInfo, context)) userInfo = Credentials() },
             modifier = modifier.fillMaxWidth(),
@@ -120,10 +120,12 @@ fun RegisterInputs(modifier: Modifier) {
 
 @Composable
 fun BackToLogin(modifier: Modifier, activity: ComponentActivity) {
-    Row(modifier = modifier.fillMaxWidth().padding(15.dp),
+    Row(modifier = modifier
+        .fillMaxWidth()
+        .padding(15.dp),
         verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.Start) {
-        IconButton(onClick = { LoginScreen().goTo(activity, LoginScreen::class.java) }) {
+        IconButton(onClick = { LoginScreen().goTo(activity, LoginScreen::class.java, "FromRegister") }) {
             Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
         }
     }

@@ -49,11 +49,12 @@ import com.example.financeback.classes.Income
 import com.example.financeback.classes.IncomeInfo
 import com.example.financeback.utils.CurrencyMask
 import com.example.financeback.utils.NumberFormatter
+import com.example.financeback.utils.PastOrPresentSelectableDates
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 @Composable
-fun IncomeScreen(modifier:Modifier = Modifier, userID: Int, incomeID: Int = -1) {
+fun IncomeScreen(modifier:Modifier = Modifier, userID: Int) {
     val context = LocalContext.current
     Column(modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -73,7 +74,7 @@ fun IncomeInputs(modifier: Modifier, context: Context, userID: Int){
     val category = Category()
     val categories = category.getCategoriesByUser(context, userID)
     val focusManager = LocalFocusManager.current
-    val datePickerState = rememberDatePickerState()
+    val datePickerState = rememberDatePickerState(selectableDates = PastOrPresentSelectableDates)
 
     var selectedCategory by remember { mutableStateOf(categories[0]) }
     var expands by remember { mutableStateOf(false) }
@@ -86,7 +87,7 @@ fun IncomeInputs(modifier: Modifier, context: Context, userID: Int){
     var newCategoryProfit by remember { mutableStateOf(false) }
 
     if (incomeSaved) {
-        incomeInfo.name = ""
+        incomeInfo = IncomeInfo()
         number = ""
     }
 
@@ -118,7 +119,7 @@ fun IncomeInputs(modifier: Modifier, context: Context, userID: Int){
         DatePickerDialog(onDismissRequest = { showDatePicker = false },
             confirmButton = {
                 Button(onClick = { datePickerState.selectedDateMillis?.let {millis ->
-                    incomeInfo.date = millis}
+                    incomeInfo.date = millis.plus(14400000)}
                     showDatePicker = false}) {
                     Text(text = "Selecionar")
                 }
@@ -144,7 +145,7 @@ fun IncomeInputs(modifier: Modifier, context: Context, userID: Int){
         modifier = modifier)
 
     TextField(
-        value = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(incomeInfo.date),
+        value = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(incomeInfo.date.plus(86400)),
         onValueChange = { },
         modifier = modifier.onFocusEvent {
                 if (it.isFocused) {

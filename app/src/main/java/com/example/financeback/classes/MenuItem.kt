@@ -7,5 +7,6 @@ data class MenuItem(
     var title: String,
     var contentDescription: String,
     var icon: ImageVector,
-    var sensitiveItem: Boolean
+    var sensitiveItem: Boolean,
+    var onClick: () -> Unit
 )

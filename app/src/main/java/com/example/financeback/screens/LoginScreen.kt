@@ -9,6 +9,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
 import com.example.financeback.MainActivity
+import com.example.financeback.classes.DatabaseHelper
 import com.example.financeback.classes.User
 import com.example.financeback.classes.UserLog
 import com.example.financeback.screens.compose.Login
@@ -31,10 +32,13 @@ class LoginScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val userLog = UserLog()
-        val userRemember = userLog.getUserRemember(this)
-        if (userRemember.isNotEmpty())
-            checkCredentials(userRemember, this)
+        val operation = intent.getStringExtra("Operation")
+
+        if (operation.isNullOrEmpty()) {
+            val userRemember = UserLog().getUserRemember(this)
+            if (userRemember.isNotEmpty())
+                checkCredentials(userRemember, this)
+        }
 
         setContent{
             MaterialTheme {
@@ -44,12 +48,10 @@ class LoginScreen : ComponentActivity() {
     }
 
     fun checkCredentials(credentials: Credentials, context: Context): Boolean {
-        val user = User()
-        val userLog = UserLog()
-        val userID = user.checkUser(context, credentials)
+        val userID = User().checkUser(context, mapOf(DatabaseHelper.USERS.COLUMN_USERNAME to credentials.login, DatabaseHelper.USERS.COLUMN_PASSWORD to credentials.password))
         if (credentials.isNotEmpty()) {
             if (credentials.login == "admin" || userID != -1){
-                userLog.saveUserLog(context, credentials)
+                UserLog().saveUserLog(context, credentials)
                 val int = Intent(context, MainActivity::class.java)
                 int.putExtra("UserID", userID)
                 context.startActivity(int)
@@ -61,8 +63,10 @@ class LoginScreen : ComponentActivity() {
         return false
     }
 
-    fun goTo(activity: ComponentActivity, classDestination: Class<*>) {
+    fun goTo(activity: ComponentActivity, classDestination: Class<*>, extraParam: String = "") {
         val intent = Intent(activity, classDestination)
+        if (extraParam.isNotEmpty())
+            intent.putExtra("Operation", extraParam)
         activity.startActivity(intent)
         activity.finish()
     }

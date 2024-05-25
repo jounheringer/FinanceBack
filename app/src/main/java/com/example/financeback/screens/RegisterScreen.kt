@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.example.financeback.MainActivity
+import com.example.financeback.classes.DatabaseHelper
 import com.example.financeback.classes.User
 import com.example.financeback.screens.compose.Register
 
@@ -27,7 +28,7 @@ class RegisterScreen: ComponentActivity(){
                 Toast.makeText(context, "Erro ao cadastrar usuario tente novamente.", Toast.LENGTH_SHORT).show()
                 return false
             }
-            val userID = user.checkUser(context, credentials)
+            val userID = user.checkUser(context, mapOf(DatabaseHelper.USERS.COLUMN_USERNAME to credentials.login, DatabaseHelper.USERS.COLUMN_NAME to credentials.fullName, DatabaseHelper.USERS.COLUMN_PASSWORD to credentials.password))
             val int = Intent(context, MainActivity::class.java)
             int.putExtra("UserID", userID)
             context.startActivity(int)

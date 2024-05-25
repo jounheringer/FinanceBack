@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -132,7 +133,6 @@ fun DateReportSelect(modifier: Modifier,
 @Composable
 fun ShowAllIncomes(modifier: Modifier, navigateTo: () -> Unit, context: Context, dateStamp: String, limit: Int = 10) {
     val income = Income()
-    val state = rememberScrollState()
     val filterOption = listOf("Total", "Positivo", "Negativo")
     val orderBy by remember { mutableStateOf("DESC") }
 
@@ -149,10 +149,7 @@ fun ShowAllIncomes(modifier: Modifier, navigateTo: () -> Unit, context: Context,
         timeStamp = dateStamp,
         orderBy = orderBy)
 
-    Column(modifier = modifier
-        .padding(0.dp, 6.dp)
-        .verticalScroll(state)
-    ) {
+    Column(modifier = modifier.padding(0.dp, 6.dp)) {
         Row(modifier = modifier
             .fillMaxWidth()
             .padding(0.dp, 0.dp, 10.dp, 0.dp),
@@ -172,53 +169,67 @@ fun ShowAllIncomes(modifier: Modifier, navigateTo: () -> Unit, context: Context,
                 }
             }
         }
-        incomes.forEach { income ->
-            Card(
-                modifier = modifier
-                    .fillMaxWidth()
-            ) {
-                Row(modifier = modifier
-                    .fillMaxWidth()) {
-                    Column {
-                        Text(
-                            modifier = modifier.padding(8.dp, 4.dp),
-                            text = "Nota nº ${income["ID"]}"
-                        )
-                        Text(
-                            modifier = modifier.padding(8.dp, 4.dp),
-                            text = "Item: ${income["Name"]}"
-                        )
-                        Text(
-                            modifier = modifier.padding(8.dp, 4.dp),
-                            text = "Preço: ${income["Value"]}",
-                            color = if(income["Profit"] as Boolean) positiveLight else negativeLight
-                        )
-                        Text(
-                            modifier = modifier.padding(8.dp, 4.dp),
-                            text = "Data: ${SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(
-                                income["Date"]
-                            )}"
-                        )
-                        Text(
-                            modifier = modifier.padding(8.dp, 4.dp),
-                            text = "Categoria: ${income.getOrDefault("CategoryName", "")}"
-                        )
-                        Text(
-                            modifier = modifier.padding(8.dp, 4.dp),
-                            text = "Descrição: ${income.getOrDefault("Description", "")}"
-                        )
+        if(incomes.isNotEmpty()) {
+            Column(modifier = modifier.verticalScroll(rememberScrollState())) {
+                incomes.forEach { income ->
+                    Card(
+                        modifier = modifier
+                            .fillMaxWidth()
+                            .heightIn(0.dp, 300.dp)
+                    ) {
+                        Row(
+                            modifier = modifier
+                                .fillMaxWidth()
+                        ) {
+                            Column {
+                                Text(
+                                    modifier = modifier.padding(8.dp, 4.dp),
+                                    text = "Nota nº ${income["ID"]}"
+                                )
+                                Text(
+                                    modifier = modifier.padding(8.dp, 4.dp),
+                                    text = "Item: ${income["Name"]}"
+                                )
+                                Text(
+                                    modifier = modifier.padding(8.dp, 4.dp),
+                                    text = "Preço: ${income["Value"]}",
+                                    color = if (income["Profit"] as Boolean) positiveLight else negativeLight
+                                )
+                                Text(
+                                    modifier = modifier.padding(8.dp, 4.dp),
+                                    text = "Data: ${
+                                        SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(
+                                            income["Date"]
+                                        )
+                                    }"
+                                )
+                                Text(
+                                    modifier = modifier.padding(8.dp, 4.dp),
+                                    text = "Categoria: ${income.getOrDefault("CategoryName", "")}"
+                                )
+                                Text(
+                                    modifier = modifier
+                                        .padding(8.dp, 4.dp)
+                                        .verticalScroll(rememberScrollState()),
+                                    text = "Descrição: ${income.getOrDefault("Description", "")}"
+                                )
+                            }
+                            Spacer(modifier = modifier.weight(1f))
+                            IconButton(onClick = {
+                                options = true
+                                incomeToProcess = income["ID"] as Int
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Filled.MoreVert,
+                                    contentDescription = "Deletar"
+                                )
+                            }
+                        }
                     }
-                    Spacer(modifier = modifier.weight(1f))
-                    IconButton(onClick = { options = true
-                        incomeToProcess = income["ID"] as Int
-                    }) {
-                        Icon(imageVector = Icons.Filled.MoreVert,
-                            contentDescription = "Deletar")
-                    }
+                    Spacer(modifier = modifier.height(10.dp))
                 }
             }
-            Spacer(modifier = modifier.height(10.dp))
-        }
+        }else NoIncomesMessage(modifier)
 
         if (options) {
             OptionsIncomeAlert(modifier,
@@ -295,36 +306,36 @@ fun OptionsIncomeAlert(modifier: Modifier = Modifier, id: Int, navigateToEdit: (
 fun IncomeStatus(modifier: Modifier, context: Context, timeStamp: String) {
     val income = Income()
     val incomeStatus by remember { mutableStateOf(income.getIncomeTotals(context, timeStamp)) }
-    val state = rememberScrollState()
 
     Column(modifier = modifier.padding(0.dp, 12.dp)) {
         Row(
             modifier = modifier
-                .horizontalScroll(state),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceAround
         ) {
             incomeStatus.forEach { status ->
+                val textColor = when(status.key){
+                    "Positivo" -> positiveLight
+                    "Negativo" -> negativeLight
+                    else -> MaterialTheme.colorScheme.onBackground}
                 Column(
                     modifier = modifier
                         .background(
-                            when (status.key) {
-                                "Total" -> MaterialTheme.colorScheme.background
-                                "Positivo" -> positiveLight
-                                "Negativo" -> negativeLight
-                                else -> MaterialTheme.colorScheme.background
-                            },
+                            MaterialTheme.colorScheme.onPrimary,
                             shape = RoundedCornerShape(10.dp)
                         )
-                        .size(200.dp, 100.dp)
-                        .bounceClick(),
+                        .size(120.dp, 100.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(text = "R$: ${status.value}", color = if (status.key == "Total") MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.background)
-                    Text(text = "Valor ${status.key}", color = if (status.key == "Total") MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.background)
+                    Row(modifier = modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start) {
+                        Text(text = "R$", modifier = modifier.padding(15.dp, 0.dp), color = textColor)
+                    }
+                    Text(text = status.value, color = textColor)
+                    Text(text = status.key, color = textColor)
                 }
-                if(status.key != "Negativo")
-                    Spacer(modifier = modifier.width(10.dp))
             }
         }
     }

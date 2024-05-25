@@ -33,10 +33,17 @@ class User {
         }
     }
 
-    fun checkUser(context: Context, credentials: Credentials): Int {
-        val where = "${DatabaseHelper.USERS.COLUMN_USERNAME} = ? AND ${DatabaseHelper.USERS.COLUMN_PASSWORD} = ?"
-        val whereArgs = arrayOf(credentials.login, credentials.password)
+    fun checkUser(context: Context, credentials: Map<String, String>): Int {
+        var where = ""
+        var whereArgs = arrayOf<String>()
         var returnUser = -1
+        var counter = 0
+
+        credentials.forEach {cred ->
+            where = where.plus(if (credentials.size > 1 && counter != (credentials.size -1)) "${cred.key} = ? AND " else "${cred.key} = ?")
+            whereArgs += cred.value
+            counter++
+        }
 
         try {
             val databaseCursor = DatabaseHelper(context).readableDatabase
@@ -164,17 +171,24 @@ class User {
         }
     }
 
-    fun changePassword(context: Context, userID: Int, password: String, oldPassword: String): Boolean {
+    fun changePassword(context: Context, userID: Int, password: String, oldPassword: String?): Boolean {
         val values = ContentValues().apply {
             put(DatabaseHelper.USERS.COLUMN_PASSWORD, password)
         }
+        var where = "${DatabaseHelper.USERS.COLUMN_ID} = ?"
+        val whereArgs = arrayOf(userID.toString())
+        if (!oldPassword.isNullOrEmpty()){
+            where = where.plus(" AND ${DatabaseHelper.USERS.COLUMN_PASSWORD} = ?")
+            whereArgs + oldPassword
+        }
+
         try {
             val databaseCursor = DatabaseHelper(context).writableDatabase
 
             return databaseCursor.update(DatabaseHelper.USERS.TABLE_NAME,
                 values,
-                "${DatabaseHelper.USERS.COLUMN_ID} = ? AND ${DatabaseHelper.USERS.COLUMN_PASSWORD} = ?",
-                arrayOf(userID.toString(), oldPassword)) > 0
+                where,
+                whereArgs) > 0
         }catch (e: SQLiteException){
             throw e
         }

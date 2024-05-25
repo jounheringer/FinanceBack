@@ -71,7 +71,6 @@ fun CustomDatePicker(
         MutableInteractionSource()
     }
 
-    var selected: Boolean
     var monthSelected by remember { mutableStateOf(months[currentMonth]) }
     var yearSelected by remember { mutableIntStateOf(currentYear) }
     var returnMonth: String
@@ -80,41 +79,41 @@ if(visible) {
     AlertDialog(modifier = modifier.size(250.dp, 350.dp),
         backgroundColor = MaterialTheme.colorScheme.background,
         shape = RoundedCornerShape(10),
-        title = { },
+        title = { Text(
+            modifier = modifier.padding(0.dp, 10.dp),
+            text = "Selecione Mês e Ano",
+            color = MaterialTheme.colorScheme.onBackground
+        ) },
         text = {
             Column(
                 modifier = modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceEvenly
             ) {
-                Text(
-                    modifier = modifier.padding(4.dp, 8.dp),
-                    text = "Selecione Mês e Ano"
-                )
                 Row(
                     modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-
                     IconButton(onClick = { yearSelected-- }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                            contentDescription = "Anterior"
+                            contentDescription = "Anterior",
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
-                    Text(text = yearSelected.toString())
+                    Text(text = yearSelected.toString(), color = MaterialTheme.colorScheme.onBackground)
                     IconButton(onClick = { yearSelected++ }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = "Proximo"
+                            contentDescription = "Proximo",
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 }
 
                 FlowRow(maxItemsInEachRow = rows) {
                     months.forEach { month ->
-                        selected = month == monthSelected
                         Box(modifier = modifier
                                 .padding(4.dp)
                                 .height(30.dp)
@@ -160,7 +159,7 @@ if(visible) {
                 )
             }
           },
-            onDismissRequest = {}
+            onDismissRequest = { onCancelClicked() }
         )
     }
 }
