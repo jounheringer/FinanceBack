@@ -7,7 +7,8 @@ Aplicativo financeiro para uso pessoal afim de apoiar o usuario a manter control
 * Filtrar notas por categorias
 
 ## Arquitetura e stack
-TODO colocar arquitetura
+Arquitetura MVC(Model , View, Controller): Uma arquitetura que cria um controlador para administrar cada evento criado pelo usuario com uma resposta vinda do banco.
+Foi pensado em usar a arquiterura MVVM(Model, View, View Model), uma arquitetura boa principalmente para testes unitarios por conta da sua individualidação de componentes.
 
 Detalhes do stack:
 * Implementação feita em Kotlin 2.0.0
