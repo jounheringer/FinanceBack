@@ -2,81 +2,79 @@ package com.example.financeback.classes
 
 import android.content.ContentValues
 import android.content.Context
-import android.database.Cursor
 import android.database.sqlite.SQLiteException
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.example.financeback.utils.NumberFormatter
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
-class Income(userID: Int? = null) {
-    private var userID: Int? = if (userID == null) userID else null
-    private var incomeID: Int? = null
-    var value: Float? = null
-    var name: String? = null
-    var dateStamp: Long? = null
+data class IncomeInfo(
+    var id: Int = -1,
+    var value: Double = 0.0,
+    var name: String = "",
+    var date: Long = System.currentTimeMillis(),
+    var description: String = "",
+    var categoryID: Int = -1,
     var profit: Boolean = false
+){
+    fun missingParam(): Array<String> {
+        var missingParams = arrayOf<String>()
+        if (value == 0.0)
+            missingParams += "Valor"
+        if (name.isEmpty())
+            missingParams += "Nome"
+        if (date == 0L)
+            missingParams += "Data"
+
+        return missingParams
+    }
+}
+
+class Income() {
 
     fun getIncomes(context: Context,
                    limit: Int,
-                   offset:Int,
-                   filter: String,
+                   offset: Int = 0,
+                   filter: String = "Total",
+                   categoryFilter: String = "All",
                    timeStamp: String,
-                   orderByFlow: String = "DESC"): List<Map<String, Any>>?{ /*TODO adicionar condicao para pegar info de um so usuario*/
+                   orderBy: String = "DESC"): List<Map<String, Any>> {
+        var whereArgsFilter = arrayOf<String>()
+
+        val whereTimeStamp = "strftime('%Y-%m', i.${DatabaseHelper.INCOME.COLUMN_DATESTAMP} / 1000, 'unixepoch') = ?"
+        val whereArgsTimeStamp: Array<String> = arrayOf(timeStamp)
+        val incomesList = mutableListOf<Map<String, Any>>()
+        val columns = "i.${DatabaseHelper.INCOME.COLUMN_ID}, " +
+                "i.${DatabaseHelper.INCOME.COLUMN_NAME}, " +
+                "i.${DatabaseHelper.INCOME.COLUMN_VALUE}, " +
+                "i.${DatabaseHelper.INCOME.COLUMN_DATESTAMP}, " +
+                "i.${DatabaseHelper.INCOME.COLUMN_DESCRIPTION}, " +
+                "c.${DatabaseHelper.CATEGORIES.COLUMN_PROFIT}, " +
+                "c.${DatabaseHelper.CATEGORIES.COLUMN_NAME}"
+
+        val whereFilter = "c.${DatabaseHelper.CATEGORIES.COLUMN_PROFIT} = ?"
+        when (filter) {
+            "Positivo" -> whereArgsFilter = arrayOf("1")
+            "Negativo" -> whereArgsFilter = arrayOf("0")
+        }
+
         try {
-            val limitAndOffset = "${offset},${limit}"
             val databaseCursor = DatabaseHelper(context).writableDatabase
-            val orderBy = "${DatabaseHelper.INCOME.COLUMN_DATESTAMP} ${orderByFlow}"
-            var whereFilter = ""
-            var whereArgsFilter = arrayOf<String>()
-            var whereTimeStamp = ""
-            var whereArgsTimeStamp = arrayOf<String>()
-            var where = whereFilter
-            var whereArgs = arrayOf<String>()
-
-            whereTimeStamp = "strftime('%Y-%m', ${DatabaseHelper.INCOME.COLUMN_DATESTAMP} / 1000, 'unixepoch') = ?"
-            whereArgsTimeStamp = arrayOf<String>(timeStamp)
-
-            whereFilter = "${DatabaseHelper.INCOME.COLUMN_PROFIT} = ?"
-            when (filter) {
-                "Positivo" -> whereArgsFilter = arrayOf("1")
-                "Negativo" -> whereArgsFilter = arrayOf("0")
-            }
-
-            where = if(filter != "Total")
-                "$whereFilter AND $whereTimeStamp"
-            else
-                whereTimeStamp
-
-            whereArgs = if (whereArgsFilter.isNotEmpty())
-                    whereArgsFilter + whereArgsTimeStamp
-                else
-                    whereArgsTimeStamp
-
-            val rows: Cursor = databaseCursor.query(
-                DatabaseHelper.INCOME.TABLE_NAME,
-                null,
-                where,
-                whereArgs,
-                null,
-                null,
-                orderBy,
-                limitAndOffset,
-            )
-
-            val incomesList = mutableListOf<Map<String, Any>>()
-
-            rows.use { cursor ->
+            databaseCursor.rawQuery(
+                "SELECT $columns " +
+                        "FROM ${DatabaseHelper.INCOME.TABLE_NAME} i " +
+                        "INNER JOIN ${DatabaseHelper.CATEGORIES.TABLE_NAME} c ON i.${DatabaseHelper.INCOME.COLUMN_CATEGORY_ID} = c.${DatabaseHelper.CATEGORIES.COLUMN_ID} " +
+                        "WHERE ${ if(filter != "Total") "$whereFilter AND $whereTimeStamp" else whereTimeStamp } " +
+                        "ORDER BY i.${DatabaseHelper.INCOME.COLUMN_DATESTAMP} $orderBy LIMIT $limit OFFSET $offset",
+                if (whereArgsFilter.isNotEmpty()) whereArgsFilter + whereArgsTimeStamp else whereArgsTimeStamp,
+            ).use { cursor ->
                 if (cursor.moveToFirst()){
                     do{
                         val incomesReturn = mutableMapOf<String, Any>()
-                        incomesReturn["ID"] = rows.getInt(rows.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_ID))
-                        incomesReturn["User"] = rows.getInt(rows.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_USER))
-                        incomesReturn["Value"] = NumberFormatter().currencyFormatterFloat(rows.getFloat(rows.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_VALUE)).toString())
-                        incomesReturn["Name"] = rows.getString(rows.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_NAME))
-                        incomesReturn["Date"] = rows.getLong(rows.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_DATESTAMP))
-                        incomesReturn["Profit"] = (rows.getInt(rows.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_PROFIT)) == 1)
+                        incomesReturn["ID"] = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_ID))
+                        incomesReturn["Value"] = NumberFormatter().currencyFormatterFloat(cursor.getFloat(cursor.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_VALUE)))
+                        incomesReturn["Name"] = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_NAME))
+                        incomesReturn["Date"] = cursor.getLong(cursor.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_DATESTAMP))
+                        incomesReturn["Description"] = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_DESCRIPTION))
+                        incomesReturn["Profit"] = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.CATEGORIES.COLUMN_PROFIT)) == 1
+                        incomesReturn["CategoryName"] = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.CATEGORIES.COLUMN_NAME))
                         incomesList.add(incomesReturn)
                     }while(cursor.moveToNext())
                 }
@@ -87,10 +85,58 @@ class Income(userID: Int? = null) {
         }
     }
 
+    fun getIncomeByID(context: Context, incomeID: Int): IncomeInfo {
+        val incomeInfo = IncomeInfo()
+        val selects = arrayOf(
+            DatabaseHelper.INCOME.COLUMN_ID,
+            DatabaseHelper.INCOME.COLUMN_NAME,
+            DatabaseHelper.INCOME.COLUMN_VALUE,
+            DatabaseHelper.INCOME.COLUMN_DATESTAMP,
+            DatabaseHelper.INCOME.COLUMN_DESCRIPTION,
+            DatabaseHelper.INCOME.COLUMN_CATEGORY_ID
+        )
+
+        try{
+
+            val databaseCursor = DatabaseHelper(context).readableDatabase
+
+            databaseCursor.query(
+                DatabaseHelper.INCOME.TABLE_NAME,
+                selects,
+                "${DatabaseHelper.INCOME.COLUMN_ID} = ?",
+                arrayOf(incomeID.toString()),
+                null,
+                null,
+                null,
+                null
+            ).use {cursor ->
+                if(cursor.moveToFirst()) {
+                    incomeInfo.id =
+                        cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_ID))
+                    incomeInfo.name =
+                        cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_NAME))
+                    incomeInfo.value =
+                        cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_VALUE))
+                    incomeInfo.date =
+                        cursor.getLong(cursor.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_DATESTAMP))
+                    incomeInfo.categoryID =
+                        cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_CATEGORY_ID))
+                    incomeInfo.description =
+                        cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.INCOME.COLUMN_DESCRIPTION))
+                }
+            }
+
+            return incomeInfo
+        }catch(e: SQLiteException){
+            throw e
+        }
+    }
+
     fun getIncomesCount(context: Context, idUser: Int?, filter:String): Int{
         try {
             val databaseCursor = DatabaseHelper(context).writableDatabase
-            val where = "${DatabaseHelper.INCOME.COLUMN_PROFIT} = ?"
+            val where = "c.${DatabaseHelper.CATEGORIES.COLUMN_PROFIT} = ?"
+            var resultCount = 0
 
             var whereArgs = arrayOf<String>()
 
@@ -99,52 +145,51 @@ class Income(userID: Int? = null) {
                 "Negativo" -> whereArgs = arrayOf("0")
             }
 
-            val result = databaseCursor.query(
-                DatabaseHelper.INCOME.TABLE_NAME,
-                arrayOf("COUNT(*)"),
-                if (filter == "Total") null else where,
-                if (filter == "Total") null else whereArgs,
-                null,
-                null,
-                null,
-                null,
-            )
-            result.moveToFirst()
-            val resultCount = result.getInt(0)
-
-            result.close()
-
+            databaseCursor.rawQuery(
+                "SELECT COUNT(*) " +
+                        "FROM ${DatabaseHelper.INCOME.TABLE_NAME} i " +
+                        "INNER JOIN ${DatabaseHelper.CATEGORIES.TABLE_NAME} c ON c.${DatabaseHelper.CATEGORIES.COLUMN_ID} = i.${DatabaseHelper.INCOME.COLUMN_CATEGORY_ID} " +
+                        if (filter == "Total") "WHERE $where" else "",
+                        if (filter == "Total") whereArgs else arrayOf<String>()
+            ).use { cursor ->
+                if (cursor.moveToFirst())
+                    resultCount = cursor.getInt(0)
+            }
             return resultCount
         }catch (e: SQLiteException){
             throw e
         }
     }
 
-    fun getIncomeTotals(context: Context, timeStamp: String/*user: Int*/): MutableMap<String, String> {
+    fun getIncomeTotals(context: Context, timeStamp: String/*user: Int*/): Map<String, String> {
 
         try {
             val databaseCursor = DatabaseHelper(context).writableDatabase
-            val results = mutableMapOf<String, Int>()
+            val results = mutableMapOf<String, Float>()
             val returnMap = mutableMapOf<String, String>()
 
-            databaseCursor.rawQuery("SELECT SUM(${DatabaseHelper.INCOME.COLUMN_VALUE}) AS negative, \n" +
-                        "(SELECT SUM(${DatabaseHelper.INCOME.COLUMN_VALUE})\n" +
-                        "   FROM income\n" +
-                        "   WHERE ${DatabaseHelper.INCOME.COLUMN_PROFIT} = ? AND strftime('%Y-%m', ${DatabaseHelper.INCOME.COLUMN_DATESTAMP} / 1000, 'unixepoch') = ?) as positive\n" +
-                        "FROM income\n" +
-                        "WHERE strftime('%Y-%m', ${DatabaseHelper.INCOME.COLUMN_DATESTAMP} / 1000, 'unixepoch') = ? AND ${DatabaseHelper.INCOME.COLUMN_PROFIT} = ?;",
+            databaseCursor.rawQuery("SELECT SUM(i.${DatabaseHelper.INCOME.COLUMN_VALUE}) AS negative, \n" +
+                        "(SELECT SUM(i.${DatabaseHelper.INCOME.COLUMN_VALUE})" +
+                            "FROM ${DatabaseHelper.INCOME.TABLE_NAME} i " +
+                            "INNER JOIN ${DatabaseHelper.CATEGORIES.TABLE_NAME} c ON i.${DatabaseHelper.INCOME.COLUMN_CATEGORY_ID} = c.${DatabaseHelper.CATEGORIES.COLUMN_ID} " +
+                            "WHERE c.${DatabaseHelper.CATEGORIES.COLUMN_PROFIT} = ? AND " +
+                            "strftime('%Y-%m', i.${DatabaseHelper.INCOME.COLUMN_DATESTAMP} / 1000, 'unixepoch') = ?) as positive\n" +
+                        "FROM income i " +
+                        "INNER JOIN ${DatabaseHelper.CATEGORIES.TABLE_NAME} c ON i.${DatabaseHelper.INCOME.COLUMN_CATEGORY_ID} = c.${DatabaseHelper.CATEGORIES.COLUMN_ID} " +
+                        "WHERE strftime('%Y-%m', i.${DatabaseHelper.INCOME.COLUMN_DATESTAMP} / 1000, 'unixepoch') = ? AND " +
+                        "c.${DatabaseHelper.CATEGORIES.COLUMN_PROFIT} = ?;",
                 arrayOf("1", timeStamp, timeStamp, "0")
             ).use { cursor ->
                 if (cursor.moveToFirst()){
-                    results["Total"] = cursor.getInt(cursor.getColumnIndexOrThrow("positive")).minus(cursor.getInt(cursor.getColumnIndexOrThrow("negative")))
-                    results["Positivo"] = cursor.getInt(cursor.getColumnIndexOrThrow("positive"))
-                    results["Negativo"] = cursor.getInt(cursor.getColumnIndexOrThrow("negative"))
+                    results["Total"] = cursor.getFloat(cursor.getColumnIndexOrThrow("positive")).minus(cursor.getFloat(cursor.getColumnIndexOrThrow("negative")))
+                    results["Positivo"] = cursor.getFloat(cursor.getColumnIndexOrThrow("positive"))
+                    results["Negativo"] = cursor.getFloat(cursor.getColumnIndexOrThrow("negative"))
                 }
             }
             databaseCursor.close()
 
             results.forEach { number ->
-                returnMap[number.key] = NumberFormatter().currencyFormatter(number.value.toString())
+                returnMap[number.key] = NumberFormatter().currencyFormatterFloat(number.value)
             }
 
             return returnMap
@@ -153,23 +198,20 @@ class Income(userID: Int? = null) {
         }
     }
 
-    fun saveIncome(context: Context, value: Double, name: String, dateStamp: Long, profit: Boolean, description: String): Long? {
-//        Salvar nota com valor X, name X, data x e se for ou nao lucro
+    fun saveIncome(context: Context, incomeInfo: IncomeInfo, categoryInfo: CategoryInfo, userID: Int): Boolean {
         val values = ContentValues().apply {
-            put(DatabaseHelper.INCOME.COLUMN_VALUE, value)
-            put(DatabaseHelper.INCOME.COLUMN_NAME, name)
-            put(DatabaseHelper.INCOME.COLUMN_DATESTAMP, System.currentTimeMillis())
-            put(DatabaseHelper.INCOME.COLUMN_PROFIT, profit)
+            put(DatabaseHelper.INCOME.COLUMN_VALUE, incomeInfo.value)
+            put(DatabaseHelper.INCOME.COLUMN_NAME, incomeInfo.name)
+            put(DatabaseHelper.INCOME.COLUMN_DATESTAMP, incomeInfo.date)
+            put(DatabaseHelper.INCOME.COLUMN_DESCRIPTION, incomeInfo.description)
+            put(DatabaseHelper.INCOME.COLUMN_CATEGORY_ID, categoryInfo.id)
+            put(DatabaseHelper.INCOME.COLUMN_USER, userID)
         }
 
         try {
             val databaseCursor = DatabaseHelper(context).writableDatabase
 
-            val row: Long = databaseCursor.insert(DatabaseHelper.INCOME.TABLE_NAME, null, values)
-            if (row.toInt() == -1)
-                return null
-            return row
-
+            return databaseCursor.insert(DatabaseHelper.INCOME.TABLE_NAME, null, values).toInt() != -1
         }catch (e: SQLiteException){
             throw e
         }
@@ -193,55 +235,54 @@ class Income(userID: Int? = null) {
         }
     }
 
-    fun editIncome(context: Context, userID: Int?, incomeID: Int, value: Float, name: String, profit: Boolean){
-//        atualizar dados de uma nota fiscal especifica
+    fun editIncome(context: Context, userID: Int, income: IncomeInfo): Boolean{
         val values = ContentValues().apply {
-            put(DatabaseHelper.INCOME.COLUMN_VALUE, value)
-            put(DatabaseHelper.INCOME.COLUMN_NAME, name)
-            put(DatabaseHelper.INCOME.COLUMN_PROFIT, profit)
+            put(DatabaseHelper.INCOME.COLUMN_VALUE, income.value)
+            put(DatabaseHelper.INCOME.COLUMN_NAME, income.name)
+            put(DatabaseHelper.INCOME.COLUMN_DATESTAMP, income.date)
+            put(DatabaseHelper.INCOME.COLUMN_CATEGORY_ID, income.categoryID)
+            put(DatabaseHelper.INCOME.COLUMN_DESCRIPTION, income.description)
         }
 
-        val where = "${DatabaseHelper.INCOME.COLUMN_ID} = ? ${if (userID != null) "AND ${DatabaseHelper.INCOME.COLUMN_USER} = ?" else ""}"
-        var whereArgs = arrayOf(incomeID.toString())
-        if (userID != null)
-            whereArgs += userID.toString()
+        val where = "${DatabaseHelper.INCOME.COLUMN_USER} = ? AND ${DatabaseHelper.INCOME.COLUMN_ID} = ?"
+        val whereArgs = arrayOf(userID.toString(), income.id.toString())
 
         try {
             val databaseCursor = DatabaseHelper(context).writableDatabase
 
-            val delete = databaseCursor?.update(DatabaseHelper.INCOME.TABLE_NAME, values, where, whereArgs)
+            return databaseCursor.update(DatabaseHelper.INCOME.TABLE_NAME, values, where, whereArgs) > 0
         }catch (e: SQLiteException){
             throw e
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun updateTotalIncomeValues(context: Context, userID: Int){
-//        Atualizar o valor total do usuario X pegando do database todas as notas fiscais atribuida a ele dentro de um mes
-        val format = DateTimeFormatter.ofPattern("MM-YYYY")
-        val formatMonth = LocalDateTime.now().format(format)
+//    @RequiresApi(Build.VERSION_CODES.O)
+//    fun updateTotalIncomeValues(context: Context, userID: Int){
+////        Atualizar o valor total do usuario X pegando do database todas as notas fiscais atribuida a ele dentro de um mes
+//        val format = DateTimeFormatter.ofPattern("MM-YYYY")
+//        val formatMonth = LocalDateTime.now().format(format)
+//
+//        val select = arrayOf("${DatabaseHelper.INCOME.COLUMN_VALUE}, ${DatabaseHelper.INCOME.COLUMN_PROFIT}")
+//        val where = "${DatabaseHelper.INCOME.COLUMN_USER} = ? AND STRFTIME('%m-%Y', ${DatabaseHelper.INCOME.COLUMN_DATESTAMP}) < ?"
+//        val whereArgs = arrayOf(userID.toString(), formatMonth.toString())
+//
+//        try {
+//            val databaseCursor = DatabaseHelper(context).writableDatabase
+//
+//            val result = databaseCursor?.query(
+//                DatabaseHelper.INCOME.TABLE_NAME, select,
+//                where, whereArgs, null, null, null)
+//
+//        }catch (e: SQLiteException){
+//            throw e
+//        }
+//    }
 
-        val select = arrayOf("${DatabaseHelper.INCOME.COLUMN_VALUE}, ${DatabaseHelper.INCOME.COLUMN_PROFIT}")
-        val where = "${DatabaseHelper.INCOME.COLUMN_USER} = ? AND STRFTIME('%m-%Y', ${DatabaseHelper.INCOME.COLUMN_DATESTAMP}) < ?"
-        val whereArgs = arrayOf(userID.toString(), formatMonth.toString())
-
-        try {
-            val databaseCursor = DatabaseHelper(context).writableDatabase
-
-            val result = databaseCursor?.query(
-                DatabaseHelper.INCOME.TABLE_NAME, select,
-                where, whereArgs, null, null, null)
-
-        }catch (e: SQLiteException){
-            throw e
-        }
-    }
-
-    fun generateReport(userID: Int? = this.userID){
+    fun generateReport(){
 //        TODO ("Listar e calcular o total de ganho, perda e valor total do usuario X dentro de um mes")
     }
 
-    fun exportReport(userID: Int? = this.userID){
+    fun exportReport(){
 //        TODO("Exportar em o relatorio do usuario X")
     }
 
