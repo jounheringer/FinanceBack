@@ -2,7 +2,6 @@ package com.example.financeback
 
 import android.content.Context
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
@@ -271,7 +270,8 @@ fun FinanceBackScreen(modifier: Modifier = Modifier, userID: Int, context: Conte
                         listOf(navArgument(name = "incomeID"){
                             type = NavType.IntType
                         })) { bacStackEntry ->
-                        bacStackEntry.arguments?.let { EditScreen(income = Income().getIncomeByID(context, it.getInt("incomeID")), userID = userID, navController = navController) } }
+                        bacStackEntry.arguments?.let { EditScreen(income = Income().getIncomeByID(context, it.getInt("incomeID")), userID = userID, navController = navController) }
+                        screenTitle = Screen.Edit.title}
 
                     composable(Screen.Profile.route) {
                         ProfileScreen(
