@@ -52,6 +52,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.financeback.MainActivity
 import com.example.financeback.R
 import com.example.financeback.classes.User
@@ -80,14 +82,15 @@ fun ProfileScreen(modifier: Modifier = Modifier, userInfo: UserInfo, updatedUser
         }
         if (changePassword)
             ChangePassword(modifier, userInfo.userID) { changePassword = it }
-        ProfileHeader(modifier = modifier, userInfo = userInfo)
+        ProfileHeader(modifier = modifier, userInfo = userInfo, context)
 
         ProfileInfo(modifier, userInfo, edit, enableEdit,{ deleteUser = it }, { userUpdated = it }, { changePassword = it })
     }
 }
 
+// TODO arrumar formatação da foto
 @Composable
-fun ProfileHeader(modifier: Modifier, userInfo: UserInfo) {
+fun ProfileHeader(modifier: Modifier, userInfo: UserInfo, context: Context) {
     var selectedImage by remember { mutableStateOf<Uri?>(null) }
     val getContent = rememberLauncherForActivityResult(contract = ActivityResultContracts.PickVisualMedia()) {uri ->
         selectedImage = uri
@@ -101,9 +104,11 @@ fun ProfileHeader(modifier: Modifier, userInfo: UserInfo) {
 
                 Box(contentAlignment = Alignment.BottomEnd) {
                     IconButton(onClick = { getContent.launch(PickVisualMediaRequest(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly)) }) {
-                        Image(
-                            painter = painterResource(id = userInfo.iconImage),
-                            contentDescription = "UserImage"
+                        AsyncImage(
+                            model = ImageRequest.Builder(context)
+                                .data(selectedImage)
+                                .build(),
+                            contentDescription = null
                         )
                     }
 

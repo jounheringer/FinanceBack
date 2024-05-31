@@ -32,11 +32,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.financeback.classes.Accessibility
 
 @Composable
 fun ConfigurationsScreen(modifier: Modifier = Modifier) {
-    var fontSize by remember{ mutableIntStateOf(12) }
-    var darkMode by remember{ mutableStateOf(false) }
+    val accessibility by remember { mutableStateOf(Accessibility()) }
 
     Column(modifier = modifier.fillMaxSize()) {
         Column(
@@ -49,15 +49,15 @@ fun ConfigurationsScreen(modifier: Modifier = Modifier) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(text = "Modo escuro")
                 Spacer(modifier = modifier.width(10.dp))
-                Switch(checked = darkMode, onCheckedChange = { darkMode = !darkMode })
+                Switch(checked = accessibility.darkMode, onCheckedChange = { accessibility.darkMode = !accessibility.darkMode })
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(text = "Tamanho da fonte")
                 Spacer(modifier = modifier.width(10.dp))
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    IconButton(onClick = { fontSize++ },
-                        enabled = fontSize < 32) {
+                    IconButton(onClick = { accessibility.fontSize++ },
+                        enabled = accessibility.fontSize < 32) {
                         Icon(imageVector = Icons.Filled.KeyboardArrowUp, contentDescription = null)
                     }
                     OutlinedCard(modifier = modifier.width(IntrinsicSize.Max)) {
@@ -69,14 +69,14 @@ fun ConfigurationsScreen(modifier: Modifier = Modifier) {
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = fontSize.toString(),
+                                text = accessibility.fontSize.toString(),
                                 fontSize = 18.sp,
                                 textAlign = TextAlign.Center
                             )
                         }
                     }
-                    IconButton(onClick = { fontSize-- },
-                        enabled = fontSize > 10) {
+                    IconButton(onClick = { accessibility.fontSize-- },
+                        enabled = accessibility.fontSize > 10) {
                         Icon(
                             imageVector = Icons.Filled.KeyboardArrowDown,
                             contentDescription = null
