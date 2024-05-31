@@ -11,8 +11,7 @@ data class IncomeInfo(
     var name: String = "",
     var date: Long = System.currentTimeMillis(),
     var description: String = "",
-    var categoryID: Int = -1,
-    var profit: Boolean = false
+    var categoryID: Int = -1
 ){
     fun missingParam(): Array<String> {
         var missingParams = arrayOf<String>()

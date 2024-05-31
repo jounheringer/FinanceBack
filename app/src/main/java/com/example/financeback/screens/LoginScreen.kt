@@ -37,7 +37,7 @@ class LoginScreen : ComponentActivity() {
         if (operation.isNullOrEmpty()) {
             val userRemember = UserLog().getUserRemember(this)
             if (userRemember.isNotEmpty())
-                checkCredentials(userRemember, this)
+                autoLogin(userRemember, this)
         }
 
         setContent{
@@ -48,19 +48,31 @@ class LoginScreen : ComponentActivity() {
     }
 
     fun checkCredentials(credentials: Credentials, context: Context): Boolean {
+        val userLog = UserLog()
+        val int = Intent(context, MainActivity::class.java)
         val userID = User().checkUser(context, mapOf(DatabaseHelper.USERS.COLUMN_USERNAME to credentials.login, DatabaseHelper.USERS.COLUMN_PASSWORD to credentials.password))
-        if (credentials.isNotEmpty()) {
-            if (credentials.login == "admin" || userID != -1){
-                UserLog().saveUserLog(context, credentials)
-                val int = Intent(context, MainActivity::class.java)
-                int.putExtra("UserID", userID)
-                context.startActivity(int)
-                (context as Activity).finish()
-                return true
-            }
+        if (credentials.isNotEmpty() && (credentials.login == "admin" || userID != -1)){
+            if(credentials.remember)
+                userLog.saveUserLog(context, credentials)
+            else
+                userLog.refreshUserLog(context)
+            int.putExtra("UserID", userID)
+            context.startActivity(int)
+            (context as Activity).finish()
+            return true
         }
         Toast.makeText(context, "Login ou senha incorretos.", Toast.LENGTH_SHORT).show()
         return false
+    }
+
+    private fun autoLogin(userRemembered: Credentials, context: Context) {
+        val int = Intent(context, MainActivity::class.java)
+        val userID = User().checkUser(context, mapOf(DatabaseHelper.USERS.COLUMN_USERNAME to userRemembered.login, DatabaseHelper.USERS.COLUMN_PASSWORD to userRemembered.password))
+        if (userRemembered.isNotEmpty() && (userRemembered.login == "admin" || userID != -1)){
+            int.putExtra("UserID", userID)
+            context.startActivity(int)
+            (context as Activity).finish()
+        }
     }
 
     fun goTo(activity: ComponentActivity, classDestination: Class<*>, extraParam: String = "") {
