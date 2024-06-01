@@ -12,7 +12,7 @@ import com.example.financeback.MainActivity
 import com.example.financeback.classes.DatabaseHelper
 import com.example.financeback.classes.User
 import com.example.financeback.classes.UserLog
-import com.example.financeback.screens.compose.Login
+import com.example.financeback.screens.compose.LoginCompose
 
 data class Credentials(
     var login: String = "",
@@ -42,7 +42,7 @@ class LoginScreen : ComponentActivity() {
 
         setContent{
             MaterialTheme {
-                Login(activity = this)
+                LoginCompose(this).Login(activity = this)
             }
         }
     }

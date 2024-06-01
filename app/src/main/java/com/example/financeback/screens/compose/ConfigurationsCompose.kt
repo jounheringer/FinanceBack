@@ -34,62 +34,67 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.financeback.classes.Accessibility
 
-@Composable
-fun ConfigurationsScreen(modifier: Modifier = Modifier) {
-    val accessibility by remember { mutableStateOf(Accessibility()) }
+class ConfigurationsCompose () {
+    @Composable
+    fun ConfigurationsScreen(modifier: Modifier = Modifier) {
+        val accessibility by remember { mutableStateOf(Accessibility()) }
 
-    Column(modifier = modifier.fillMaxSize()) {
-        Column(
-            modifier = modifier
-                .fillMaxWidth()
-                .heightIn(300.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceAround
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "Modo escuro")
-                Spacer(modifier = modifier.width(10.dp))
-                Switch(checked = accessibility.darkMode, onCheckedChange = { accessibility.darkMode = !accessibility.darkMode })
-            }
+        Column(modifier = modifier.fillMaxSize()) {
+            Column(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .heightIn(300.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceAround
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = "Modo escuro")
+                    Spacer(modifier = modifier.width(10.dp))
+                    Switch(
+                        checked = accessibility.darkMode,
+                        onCheckedChange = { accessibility.darkMode = !accessibility.darkMode })
+                }
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "Tamanho da fonte")
-                Spacer(modifier = modifier.width(10.dp))
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    IconButton(onClick = { accessibility.fontSize++ },
-                        enabled = accessibility.fontSize < 32) {
-                        Icon(imageVector = Icons.Filled.KeyboardArrowUp, contentDescription = null)
-                    }
-                    OutlinedCard(modifier = modifier.width(IntrinsicSize.Max)) {
-                        Column(
-                            modifier = modifier
-                                .widthIn(48.dp, 128.dp)
-                                .height(48.dp),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = "Tamanho da fonte")
+                    Spacer(modifier = modifier.width(10.dp))
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        IconButton(
+                            onClick = { accessibility.fontSize++ },
+                            enabled = accessibility.fontSize < 32
                         ) {
-                            Text(
-                                text = accessibility.fontSize.toString(),
-                                fontSize = 18.sp,
-                                textAlign = TextAlign.Center
+                            Icon(
+                                imageVector = Icons.Filled.KeyboardArrowUp,
+                                contentDescription = null
                             )
                         }
-                    }
-                    IconButton(onClick = { accessibility.fontSize-- },
-                        enabled = accessibility.fontSize > 10) {
-                        Icon(
-                            imageVector = Icons.Filled.KeyboardArrowDown,
-                            contentDescription = null
-                        )
+                        OutlinedCard(modifier = modifier.width(IntrinsicSize.Max)) {
+                            Column(
+                                modifier = modifier
+                                    .widthIn(48.dp, 128.dp)
+                                    .height(48.dp),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = accessibility.fontSize.toString(),
+                                    fontSize = 18.sp,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                        IconButton(
+                            onClick = { accessibility.fontSize-- },
+                            enabled = accessibility.fontSize > 10
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.KeyboardArrowDown,
+                                contentDescription = null
+                            )
+                        }
                     }
                 }
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewConfigurationScreen() {
-    ConfigurationsScreen()
 }
