@@ -96,6 +96,7 @@ class IncomeCompose (context: Context) {
         if (incomeSaved) {
             incomeInfo = IncomeInfo()
             number = ""
+            incomeSaved = false
         }
 
         if (newCategory) {
