@@ -1,6 +1,8 @@
 package com.example.financeback.screens.compose
 
 import android.content.Context
+import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
@@ -23,6 +26,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -68,80 +72,29 @@ class IncomeCompose (context: Context) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 IncomeInputs(modifier = modifier
-                        .padding(0.dp, 8.dp)
-                        .fillMaxWidth()
+                    .padding(0.dp, 8.dp)
+                    .fillMaxWidth()
                 )
             }
         }
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
     @Composable
     fun IncomeInputs(modifier: Modifier) {
-        val categories = category.getCategoriesByUser(incomeContext, Globals.getUser())
         val focusManager = LocalFocusManager.current
-        val datePickerState =
-            rememberDatePickerState(selectableDates = PastOrPresentSelectableDates)
+        val datePickerState = rememberDatePickerState(selectableDates = PastOrPresentSelectableDates)
 
-        var selectedCategory by remember { mutableStateOf(categories[0]) }
-        var expands by remember { mutableStateOf(false) }
+        var selectedCategory by remember { mutableStateOf(CategoryInfo()) }
         var incomeInfo by remember { mutableStateOf(IncomeInfo()) }
         var number by remember { mutableStateOf("") }
         var showDatePicker by remember { mutableStateOf(false) }
         var incomeSaved by remember { mutableStateOf(false) }
-        var newCategory by remember { mutableStateOf(false) }
-        var newCategoryName by remember { mutableStateOf("") }
-        var newCategoryProfit by remember { mutableStateOf(false) }
 
         if (incomeSaved) {
             incomeInfo = IncomeInfo()
             number = ""
             incomeSaved = false
-        }
-
-        if (newCategory) {
-            AlertDialog(onDismissRequest = { newCategory = false },
-                title = { Text(text = "Nova categoria") },
-                text = {
-                    Column {
-                        OutlinedTextField(
-                            value = newCategoryName,
-                            onValueChange = { newCategoryName = it },
-                            label = {
-                                Text(
-                                    text = "Nome"
-                                )
-                            })
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(
-                                checked = newCategoryProfit,
-                                onCheckedChange = { newCategoryProfit = true })
-                            Text(text = "Positivo")
-                        }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(
-                                checked = !newCategoryProfit,
-                                onCheckedChange = { newCategoryProfit = false })
-                            Text(text = "Negativo")
-                        }
-                    }
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            category.saveCategoryByUser(
-                                incomeContext,
-                                Globals.getUser(),
-                                CategoryInfo(0, newCategoryName, newCategoryProfit)
-                            )
-                            newCategoryName = ""
-                            newCategory = false
-                        },
-                        enabled = newCategoryName.isNotEmpty()
-                    ) {
-                        Text(text = "Salvar")
-                    }
-                })
         }
 
         if (showDatePicker) {
@@ -198,33 +151,7 @@ class IncomeCompose (context: Context) {
             readOnly = true
         )
 
-
-        ExposedDropdownMenuBox(expanded = expands, onExpandedChange = { expands = !expands }) {
-            TextField(modifier = modifier
-                .fillMaxWidth()
-                .menuAnchor(),
-                value = selectedCategory.name,
-                onValueChange = { },
-                readOnly = true,
-                label = { Text(text = "Categoria") },
-                trailingIcon = {
-                    Icon(
-                        imageVector = if (expands) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                        contentDescription = null
-                    )
-                })
-
-            ExposedDropdownMenu(expanded = expands, onDismissRequest = { expands = false }) {
-                categories.forEach { category ->
-                    DropdownMenuItem(
-                        text = { Text(text = category.name) },
-                        onClick = { selectedCategory = category; expands = false })
-                }
-                DropdownMenuItem(
-                    text = { Text(text = "Adicionar nova categoria") },
-                    onClick = { newCategory = true })
-            }
-        }
+        CategoriesList(modifier = modifier, selectedCategory = selectedCategory) {selectedCategory = it}
 
         TextField(
             value = incomeInfo.description,
@@ -304,6 +231,112 @@ class IncomeCompose (context: Context) {
                     }
                 }
             )
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun CategoriesList(modifier: Modifier, enableAddIncome: Boolean = true, selectedCategory: CategoryInfo, onChangeSelectedCategory:(CategoryInfo) -> Unit) {
+        val categories = category.getCategoriesByUser(incomeContext, Globals.getUser())
+        var expands by remember { mutableStateOf(false) }
+        var categoryOption by remember { mutableStateOf(CategoryInfo()) }
+        var newCategory by remember { mutableStateOf(false) }
+        var newCategoryName by remember { mutableStateOf("") }
+        var newCategoryProfit by remember { mutableStateOf(false) }
+
+        if (selectedCategory.name.isEmpty())
+            onChangeSelectedCategory(categories[0])
+
+        if (categoryOption.id >= 2) {
+            AlertDialog(title = { Text(text = "Deletar categoria")},
+                text = { Text(text = "Deseja deletar a categoria ${categoryOption.name}?") },
+                onDismissRequest = { categoryOption = CategoryInfo() },
+                confirmButton = { Button(onClick = {
+                    if (category.deleteCategory(incomeContext, categoryOption.id))
+                        categoryOption = CategoryInfo()
+                    else
+                        Toast.makeText(incomeContext, "Erro ao deletar a categoria, tente novamente", Toast.LENGTH_SHORT).show()}) {
+                    Text(text = "Deletar")
+                } })
+        }
+
+        if (newCategory) {
+            AlertDialog(onDismissRequest = { newCategory = false },
+                title = { Text(text = "Nova categoria") },
+                text = {
+                    Column {
+                        OutlinedTextField(
+                            value = newCategoryName,
+                            onValueChange = { newCategoryName = it },
+                            label = {
+                                Text(
+                                    text = "Nome"
+                                )
+                            })
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(
+                                checked = newCategoryProfit,
+                                onCheckedChange = { newCategoryProfit = true })
+                            Text(text = "Positivo")
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(
+                                checked = !newCategoryProfit,
+                                onCheckedChange = { newCategoryProfit = false })
+                            Text(text = "Negativo")
+                        }
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            category.saveCategoryByUser(
+                                incomeContext,
+                                Globals.getUser(),
+                                CategoryInfo(0, newCategoryName, newCategoryProfit)
+                            )
+                            newCategoryName = ""
+                            newCategory = false
+                        },
+                        enabled = newCategoryName.isNotEmpty()
+                    ) {
+                        Text(text = "Salvar")
+                    }
+                })
+        }
+
+        ExposedDropdownMenuBox(expanded = expands, onExpandedChange = { expands = !expands }) {
+            TextField(modifier = modifier
+                .fillMaxWidth()
+                .menuAnchor(),
+                value = selectedCategory.name,
+                onValueChange = { },
+                readOnly = true,
+                label = { Text(text = "Categoria") },
+                trailingIcon = {
+                    Icon(
+                        imageVector = if (expands) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                        contentDescription = null
+                    )
+                })
+
+            ExposedDropdownMenu(expanded = expands, onDismissRequest = { expands = false }) {
+                categories.forEach { category ->
+                    DropdownMenuItem(text = { Text(text = category.name) },
+                        onClick = { onChangeSelectedCategory(category)
+                            expands = false},
+                        trailingIcon = { if (category.userID != null)
+                            IconButton(onClick = { categoryOption = category }) {
+                                Icon(imageVector = Icons.Filled.Delete,
+                                    contentDescription = "Deletar categoria")
+                            }
+                        }
+                    )
+                }
+                if (enableAddIncome)
+                    DropdownMenuItem(text = { Text(text = "Adicionar nova categoria") },
+                        onClick = { newCategory = true })
+            }
         }
     }
 }
