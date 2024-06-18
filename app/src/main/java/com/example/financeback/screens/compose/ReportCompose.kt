@@ -22,6 +22,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -156,7 +158,7 @@ class ReportCompose (context: Context) {
         limit: Int = 10
     ) {
         val filterOption = listOf("Total", "Positivo", "Negativo")
-        val orderBy by remember { mutableStateOf("DESC") }
+        var orderBy by remember { mutableStateOf("DESC") }
 
         var offset by remember { mutableIntStateOf(0) }
         var options by remember { mutableStateOf(false) }
@@ -193,6 +195,9 @@ class ReportCompose (context: Context) {
                         )
                         Text(text = option)
                     }
+                }
+                IconButton(onClick = { orderBy = if (orderBy == "DESC") "ASC" else "DESC"}) {
+                    Icon(imageVector = if (orderBy == "DESC") Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown, contentDescription = null)
                 }
             }
             if (incomes.isNotEmpty()) {
@@ -267,6 +272,28 @@ class ReportCompose (context: Context) {
                         }
                         Spacer(modifier = modifier.height(10.dp))
                     }
+                    if (incomesCount > 10) {
+                        Row(modifier = modifier
+                            .fillMaxWidth()
+                            .padding(10.dp)) {
+                            IconButton(onClick = { offset -= 10 },
+                                enabled = offset >= 10) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                                    contentDescription = "Anterior"
+                                )
+                            }
+                            Spacer(modifier = modifier.weight(1f))
+
+                            IconButton(onClick = { offset += 10 },
+                                enabled = incomes.count() == 10) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                    contentDescription = "Proximo"
+                                )
+                            }
+                        }
+                    }
                 }
             } else HomeCompose(reportContext).NoIncomesMessage(modifier)
 
@@ -276,31 +303,6 @@ class ReportCompose (context: Context) {
                     incomeToProcess,
                     navigateTo,
                 ) { options = false }
-            }
-
-            if (incomesCount > 10) {
-                Row {
-                    if (offset >= 10) {
-                        IconButton(modifier = modifier.bounceClick(),
-                            onClick = { offset -= 10 }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                                contentDescription = "Anterior"
-                            )
-                        }
-                    }
-                    Spacer(modifier = modifier.weight(1f))
-
-
-                    if (incomes.count() == 10) {
-                        IconButton(onClick = { offset += 10 }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                contentDescription = "Proximo"
-                            )
-                        }
-                    }
-                }
             }
         }
     }
