@@ -65,13 +65,7 @@ class EditCompose (context: Context) {
                     .fillMaxWidth()
                     .padding(15.dp)
             ) {
-                IconButton(onClick = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
-                    }
-                }) {
+                IconButton(onClick = { navController.navigateUp() }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = null
