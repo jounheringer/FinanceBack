@@ -58,7 +58,7 @@ import java.util.Locale
 
 class IncomeCompose (context: Context) {
     private val incomeContext = context
-    private val category = Category()
+    private val category = Category(incomeContext)
     private val income = IncomeController(context)
     @Composable
     fun IncomeScreen(modifier: Modifier = Modifier) {
@@ -237,7 +237,7 @@ class IncomeCompose (context: Context) {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun CategoriesList(modifier: Modifier, enableAddIncome: Boolean = true, selectedCategory: CategoryInfo, onChangeSelectedCategory:(CategoryInfo) -> Unit) {
-        val categories = category.getCategoriesByUser(incomeContext, Globals.getUser())
+        val categories = category.getCategoriesByUser(Globals.getUser(), false)
         var expands by remember { mutableStateOf(false) }
         var categoryOption by remember { mutableStateOf(CategoryInfo()) }
         var newCategory by remember { mutableStateOf(false) }
@@ -252,7 +252,7 @@ class IncomeCompose (context: Context) {
                 text = { Text(text = "Deseja deletar a categoria ${categoryOption.name}?") },
                 onDismissRequest = { categoryOption = CategoryInfo() },
                 confirmButton = { Button(onClick = {
-                    if (category.deleteCategory(incomeContext, categoryOption.id))
+                    if (category.deleteCategory(categoryOption.id))
                         categoryOption = CategoryInfo()
                     else
                         Toast.makeText(incomeContext, "Erro ao deletar a categoria, tente novamente", Toast.LENGTH_SHORT).show()}) {
@@ -291,7 +291,6 @@ class IncomeCompose (context: Context) {
                     Button(
                         onClick = {
                             category.saveCategoryByUser(
-                                incomeContext,
                                 Globals.getUser(),
                                 CategoryInfo(0, newCategoryName, newCategoryProfit)
                             )

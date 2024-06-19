@@ -12,13 +12,14 @@ class IncomeController(context: Context, userID: Int = Globals.getUser()) {
     private val income = Income(context, userID)
     private val user = userID
     fun getAllIncomes(valueFilter: String = "Total",
-                      categoryFilter: String = "All",
+                      categoryFilter: Array<Int> = arrayOf(),
                       timeStamp: String,
                       orderBy: String = "DESC",
                       limit: Int = 5,
                       offset: Int = 0): List<Map<String, Any>> {
         var where = "strftime('%Y-%m', i.${DatabaseHelper.INCOME.COLUMN_DATESTAMP} / 1000, 'unixepoch') = ? "
         var whereArgs: Array<String> = arrayOf(timeStamp)
+        var categoryWhere = ""
         val options = mapOf("OrderBy" to orderBy, "Limit" to limit, "Offset" to offset)
 
         if (valueFilter !== "Total"){
@@ -29,9 +30,15 @@ class IncomeController(context: Context, userID: Int = Globals.getUser()) {
             }
         }
 
-        if (categoryFilter !== "All"){
-            where = where.plus("AND c.${DatabaseHelper.CATEGORIES.COLUMN_NAME} = ? ")
-            whereArgs += arrayOf(categoryFilter)
+        if (categoryFilter.isNotEmpty()){
+            var count = 1
+            categoryWhere = categoryWhere.plus("AND c.${DatabaseHelper.CATEGORIES.COLUMN_ID} IN (")
+            categoryFilter.forEach {category ->
+                categoryWhere = categoryWhere.plus(if (count < categoryFilter.size) "?, " else "?)")
+                whereArgs += arrayOf(category.toString())
+                count ++
+            }
+            where = where.plus(categoryWhere)
         }
 
         return income.getIncomes(where, whereArgs, options)
@@ -80,13 +87,25 @@ class IncomeController(context: Context, userID: Int = Globals.getUser()) {
         return income.deleteIncome(where, whereArgs)
     }
 
-    fun getIncomesCount(filter: String): Int {
-        var where = ""
+    fun getIncomesCount(filter: String, categoryFilter: Array<Int> = arrayOf<Int>()): Int {
+        var where = if (filter != "Total" || categoryFilter.isNotEmpty()) "WHERE " else ""
         var whereArgs = arrayOf<String>()
+        var categoryWhere = ""
 
         if (filter != "Total") {
-            where = "WHERE c.${DatabaseHelper.CATEGORIES.COLUMN_PROFIT} = ?"
+            where = where.plus("c.${DatabaseHelper.CATEGORIES.COLUMN_PROFIT} = ?")
             whereArgs = if (filter == "Positivo") arrayOf("1") else arrayOf("0")
+        }
+
+        if (categoryFilter.isNotEmpty()){
+            var count = 1
+            categoryWhere = categoryWhere.plus((if (where.length > 6) "AND " else "") + "c.${DatabaseHelper.CATEGORIES.COLUMN_ID} IN (")
+            categoryFilter.forEach {category ->
+                categoryWhere = categoryWhere.plus(if (count < categoryFilter.size) "?, " else "?)")
+                whereArgs += arrayOf(category.toString())
+                count ++
+            }
+            where = where.plus(categoryWhere)
         }
 
         return income.getIncomesCount(where, whereArgs)

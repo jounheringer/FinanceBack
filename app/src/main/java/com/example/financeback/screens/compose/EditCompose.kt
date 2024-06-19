@@ -50,7 +50,7 @@ import java.util.Locale
 
 class EditCompose (context: Context) {
     private val editContext = context
-    private val category = Category()
+    private val category = Category(this.editContext)
     private val income = IncomeController(context)
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
@@ -96,7 +96,7 @@ class EditCompose (context: Context) {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun EditInputs(modifier: Modifier, incomeInfo: IncomeInfo, navController: NavController) {
-        val categories = category.getCategoriesByUser(editContext, Globals.getUser())
+        val categories = category.getCategoriesByUser(Globals.getUser())
         val datePickerState = rememberDatePickerState(selectableDates = PastOrPresentSelectableDates)
         val focusManager = LocalFocusManager.current
         val dateFormatter = DateFormat.getDateInstance(DateFormat.MEDIUM, Locale("pt-br"))
