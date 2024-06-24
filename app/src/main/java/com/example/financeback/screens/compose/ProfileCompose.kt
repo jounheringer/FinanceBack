@@ -6,7 +6,6 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,37 +29,41 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.example.financeback.MainActivity
 import com.example.financeback.R
 import com.example.financeback.classes.User
 import com.example.financeback.classes.UserInfo
 import com.example.financeback.screens.LoginScreen
 import com.example.financeback.utils.Utils
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -92,6 +95,7 @@ class ProfileCompose (context: Context) {
             }
             if (changePassword)
                 ChangePassword(modifier, userInfo.userID) { changePassword = it }
+
             ProfileHeader(modifier = modifier, userInfo = userInfo)
 
             ProfileInfo(
@@ -109,11 +113,28 @@ class ProfileCompose (context: Context) {
     @Composable
     fun ProfileHeader(modifier: Modifier, userInfo: UserInfo) {
         var selectedImage by remember { mutableStateOf<Uri?>(null) }
-        val getContent =
-            rememberLauncherForActivityResult(contract = ActivityResultContracts.PickVisualMedia()) { uri ->
-                selectedImage = uri
+        var changeProfilePicture by remember { mutableStateOf(false) }
+        val imagePicker = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.PickVisualMedia(),
+            onResult = { imageUri->
+                if (imageUri != null){
+                    selectedImage = imageUri
+                }
             }
+        )
 
+        if (changeProfilePicture) {
+            selectedImage?.let {
+                ProfilePicture(
+                    modifier = modifier,
+                    selectedImage = selectedImage,
+                    userInfo.userID
+                ) {
+                    changeProfilePicture = it
+                }
+            }
+        }
+        
         Card {
             Column(
                 modifier = modifier
@@ -121,21 +142,29 @@ class ProfileCompose (context: Context) {
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
                 Box(contentAlignment = Alignment.BottomEnd) {
-                    IconButton(onClick = { getContent.launch(PickVisualMediaRequest(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly)) }) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(profileContext)
+                    IconButton(
+                        modifier = modifier.size(100.dp),
+                        onClick = { changeProfilePicture = true
+                            imagePicker.launch(PickVisualMediaRequest(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly))}
+                    ) {
+                        AsyncImage(modifier = modifier
+                            .size(200.dp)
+                            .clip(CircleShape),
+                            model = if (selectedImage != null) ImageRequest.Builder(profileContext)
                                 .data(selectedImage)
-                                .build(),
-                            contentDescription = null
+                                .build()
+                            else
+                                R.drawable.baseline_person_48,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop
                         )
                     }
 
                     Box(
                         modifier = modifier
                             .clip(CircleShape)
-                            .size(16.dp)
+                            .size(24.dp)
                             .background(MaterialTheme.colorScheme.background)
                     ) {
                         Icon(
@@ -416,6 +445,65 @@ class ProfileCompose (context: Context) {
                 }
             },
                 text = { Text(text = "Senha alterada com sucesso") })
+        }
+    }
+
+//    TODO salvar fotos baseado no id do usuario e dentro da pasta do app no celular do usuario
+    @Composable
+    fun ProfilePicture(modifier: Modifier,
+                       selectedImage: Uri?,
+                       userID: Int,
+                       changeProfilePicture: (Boolean) -> Unit) {
+        val profilePicture: File? =
+            selectedImage?.let {
+                Utils().getFileFromURI(this.profileContext, it, userID.toString())
+            }
+
+        AlertDialog(
+            onDismissRequest = { },
+            title = { Text(text = "Alterar foto de perfil")},
+            text = { Column(modifier = modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally){
+                Text(text = "Deseja adicionar esta foto ao seu perfil?")
+                AsyncImage(
+                    modifier = modifier
+                        .size(200.dp)
+                        .clip(CircleShape),
+                    model = if (selectedImage != null)
+                            ImageRequest.Builder(profileContext)
+                            .data(selectedImage)
+                            .build()
+                        else
+                            R.drawable.baseline_person_48,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop
+                )
+            }},
+            confirmButton = { Button(onClick = { if(profilePicture != null) this.SaveProfilePicture(profilePicture)
+                changeProfilePicture(false) }) {
+                Text(text = "Confirmar")
+            } },
+            dismissButton = { OutlinedButton(onClick = { changeProfilePicture(false) }
+            ) {
+                Text(text = "Cancelar")
+            } })
+    }
+
+    private fun SaveProfilePicture(profilePicture: File?) {
+
+    }
+
+    @Composable
+    private fun CheckPermissionAndPickPhoto() {
+        val cameraPermissionLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission()
+        ) { isGranted: Boolean ->
+            if (isGranted) {
+                // Permission is granted, proceed to step 2
+
+            } else {
+                // Permission is denied, handle it accordingly
+            }
         }
     }
 }

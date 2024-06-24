@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
@@ -215,10 +217,7 @@ fun FinanceBackScreen(modifier: Modifier = Modifier) {
                     title = { Text(screenTitle) },
                     navigationIcon = {
                         IconButton(onClick = {scope.launch{ drawerState.open() }}) {
-                            Image(
-                                painterResource(R.drawable.user), "Perfil",
-                                modifier.padding(10.dp, 0.dp)
-                            )
+                            Icon(imageVector = Icons.Filled.Menu, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
                         }
                     }
                 )
@@ -307,7 +306,7 @@ fun DrawerHeader(modifier: Modifier, userInfo: UserInfo) {
         .padding(24.dp),
         contentAlignment = Alignment.Center){
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Image(painter = painterResource(userInfo.iconImage), contentDescription = null)
+            Image(painter = painterResource(R.drawable.baseline_person_48), contentDescription = null)
             Spacer(modifier.height(10.dp))
             Text(text = userInfo.fullName, fontSize = 18.sp)
             Text(text = userInfo.userName, fontSize = 12.sp)
