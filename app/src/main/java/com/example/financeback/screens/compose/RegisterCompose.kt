@@ -1,5 +1,6 @@
 package com.example.financeback.screens.compose
 
+import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -41,98 +42,114 @@ import com.example.financeback.screens.Credentials
 import com.example.financeback.screens.LoginScreen
 import com.example.financeback.screens.RegisterScreen
 
-@Composable
-fun Register(modifier: Modifier = Modifier, activity: ComponentActivity?) {
-    Surface(modifier = modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background) {
-        if (activity != null) {
-            BackToLogin(modifier, activity)
-        }
-        Column(verticalArrangement = Arrangement.SpaceEvenly,
-            horizontalAlignment = Alignment.CenterHorizontally) {
-            WelcomeLogo(modifier, "Cadastro de usuario")
+class RegisterCompose (context: Context) {
+    private val registerContext= context
+    @Composable
+    fun Register(modifier: Modifier = Modifier, activity: ComponentActivity?) {
+        Surface(
+            modifier = modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            if (activity != null) {
+                BackToLogin(modifier, activity)
+            }
+            Column(
+                verticalArrangement = Arrangement.SpaceEvenly,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                LoginCompose(registerContext).WelcomeLogo(modifier, "Cadastro de usuario")
 
-            RegisterInputs(modifier = modifier)
+                RegisterInputs(modifier = modifier)
+            }
         }
     }
-}
 
-@Composable
-fun RegisterInputs(modifier: Modifier) {
-    var showPassword by remember { mutableStateOf(false) }
-    var showTempPassword by remember { mutableStateOf(false) }
-    var userInfo by remember { mutableStateOf(Credentials()) }
-    var tempPassword by remember { mutableStateOf("") }
+    @Composable
+    fun RegisterInputs(modifier: Modifier) {
+        var showPassword by remember { mutableStateOf(false) }
+        var showTempPassword by remember { mutableStateOf(false) }
+        var userInfo by remember { mutableStateOf(Credentials()) }
+        var tempPassword by remember { mutableStateOf("") }
 
-    val context = LocalContext.current
+        Column(
+            modifier = modifier
+                .size(280.dp, 350.dp)
+                .imePadding(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            OutlinedTextField(value = userInfo.login,
+                onValueChange = { data -> userInfo = userInfo.copy(login = data) },
+                label = { Text(text = "Usuario") })
 
-    Column(modifier = modifier
-        .size(280.dp, 350.dp)
-        .imePadding(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween) {
-        OutlinedTextField(value = userInfo.login,
-            onValueChange = { data -> userInfo = userInfo.copy(login = data) },
-            label = { Text(text = "Usuario") })
-
-        OutlinedTextField(value = userInfo.fullName,
-            onValueChange = { data -> userInfo = userInfo.copy(fullName = data) },
-            label = { Text(text = "Nome Completo") })
+            OutlinedTextField(value = userInfo.fullName,
+                onValueChange = { data -> userInfo = userInfo.copy(fullName = data) },
+                label = { Text(text = "Nome Completo") })
 
 //        TODO add more password safety
 
-        OutlinedTextField(value = userInfo.password,
-            onValueChange = { data -> userInfo = userInfo.copy(password = data) },
-            label = { Text(text = "Senha") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-            trailingIcon = {
-                IconButton(onClick = { showPassword = !showPassword }) {
-                    Icon(
-                        painter = painterResource(id = if (showPassword) R.drawable.visibilidade else R.drawable.olho),
-                        contentDescription = null
-                    )
-                }
-            })
+            OutlinedTextField(value = userInfo.password,
+                onValueChange = { data -> userInfo = userInfo.copy(password = data) },
+                label = { Text(text = "Senha") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    IconButton(onClick = { showPassword = !showPassword }) {
+                        Icon(
+                            painter = painterResource(id = if (showPassword) R.drawable.visibilidade else R.drawable.olho),
+                            contentDescription = null
+                        )
+                    }
+                })
 
-        OutlinedTextField(value = tempPassword,
-            onValueChange = { tempPassword = it },
-            label = { Text(text = "Confirmar senha") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            visualTransformation = if (showTempPassword) VisualTransformation.None else PasswordVisualTransformation(),
-            isError = !userInfo.confirmPassword(tempPassword),
-            trailingIcon = {
-                IconButton(onClick = { showTempPassword = !showTempPassword }) {
-                    Icon(
-                        painter = painterResource(id = if (showTempPassword) R.drawable.visibilidade else R.drawable.olho),
-                        contentDescription = null
-                    )
-                }
-            })
+            OutlinedTextField(value = tempPassword,
+                onValueChange = { tempPassword = it },
+                label = { Text(text = "Confirmar senha") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                visualTransformation = if (showTempPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                isError = !userInfo.confirmPassword(tempPassword),
+                trailingIcon = {
+                    IconButton(onClick = { showTempPassword = !showTempPassword }) {
+                        Icon(
+                            painter = painterResource(id = if (showTempPassword) R.drawable.visibilidade else R.drawable.olho),
+                            contentDescription = null
+                        )
+                    }
+                })
 
-        Button(onClick = { if (!RegisterScreen().checkRegister(userInfo, context)) userInfo = Credentials() },
-            modifier = modifier.fillMaxWidth(),
-            enabled = (userInfo.isNotEmpty() && userInfo.confirmPassword(tempPassword))) {
-            Text(text = "Cadastrar")
+            Button(
+                onClick = {
+                    if (!RegisterScreen().checkRegister(userInfo, registerContext)) userInfo = Credentials()
+                },
+                modifier = modifier.fillMaxWidth(),
+                enabled = (userInfo.isNotEmpty() && userInfo.confirmPassword(tempPassword))
+            ) {
+                Text(text = "Cadastrar")
+            }
         }
     }
-}
 
-@Composable
-fun BackToLogin(modifier: Modifier, activity: ComponentActivity) {
-    Row(modifier = modifier
-        .fillMaxWidth()
-        .padding(15.dp),
-        verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.Start) {
-        IconButton(onClick = { LoginScreen().goTo(activity, LoginScreen::class.java, "FromRegister") }) {
-            Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+    @Composable
+    fun BackToLogin(modifier: Modifier, activity: ComponentActivity) {
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(15.dp),
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.Start
+        ) {
+            IconButton(onClick = {
+                LoginScreen().goTo(
+                    activity,
+                    LoginScreen::class.java,
+                    "FromRegister"
+                )
+            }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Voltar"
+                )
+            }
         }
     }
-}
-
-@Preview
-@Composable
-fun PreviewRegisterScreen() {
-    Register(activity = null)
 }

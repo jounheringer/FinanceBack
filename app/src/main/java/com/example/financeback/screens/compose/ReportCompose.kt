@@ -16,23 +16,32 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonColors
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -45,7 +54,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.financeback.Globals
+import com.example.financeback.classes.Category
 import com.example.financeback.classes.Income
+import com.example.financeback.controllers.IncomeController
 import com.example.financeback.ui.theme.negativeLight
 import com.example.financeback.ui.theme.positiveLight
 import com.example.financeback.utils.CustomDatePicker
@@ -55,286 +67,404 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-@Composable
-fun ReportScreen(modifier: Modifier = Modifier, navigateToEdit: () -> Unit) {
-    val context = LocalContext.current
-    val calendar = Calendar.getInstance()
-    val numFormatter = NumberFormatter()
-    var month by remember { mutableIntStateOf(calendar.get(Calendar.MONTH)) }
-    val formatterMonth = numFormatter.decimalFormatter((month+1).toString())
 
-    var year by remember { mutableIntStateOf(calendar.get(Calendar.YEAR)) }
-    var date by remember { mutableStateOf("${year}-${formatterMonth}") }
+class ReportCompose (context: Context) {
+    private val reportContext = context
+    private val reportIncome = IncomeController(context)
+    private val reportCategory = Category(context)
+    @Composable
+    fun ReportScreen(modifier: Modifier = Modifier, navigateToEdit: () -> Unit) {
+        val calendar = Calendar.getInstance()
+        val numFormatter = NumberFormatter()
+        var month by remember { mutableIntStateOf(calendar.get(Calendar.MONTH)) }
+        val formatterMonth = numFormatter.decimalFormatter((month + 1).toString())
 
-    Column(modifier = modifier
-        .fillMaxSize()
-        .padding(8.dp, 12.dp)) {
-        DateReportSelect(modifier = modifier,
-            date = { date = it },
-            monthChange = { month = it },
-            month = month,
-            yearChange = { year = it },
-            year = year)
+        var year by remember { mutableIntStateOf(calendar.get(Calendar.YEAR)) }
+        var date by remember { mutableStateOf("${year}-${formatterMonth}") }
 
-        IncomeStatus(modifier = modifier, context, date)
-        Spacer(modifier.height(10.dp))
-        ShowAllIncomes(modifier, navigateTo = navigateToEdit, context = context, dateStamp = date)
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(12.dp, 0.dp)
+        ) {
+            DateReportSelect(
+                modifier = modifier,
+                date = { date = it },
+                monthChange = { month = it },
+                month = month,
+                yearChange = { year = it },
+                year = year
+            )
+
+            IncomeStatus(modifier = modifier, date)
+            Spacer(modifier.height(10.dp))
+            ShowAllIncomes(
+                modifier,
+                navigateTo = navigateToEdit,
+                dateStamp = date
+            )
+        }
     }
-}
 
-@Composable
-fun DateReportSelect(modifier: Modifier,
-                     date: (String) -> Unit,
-                     monthChange: (Int) -> Unit,
-                     month: Int,
-                     yearChange: (Int) -> Unit,
-                     year: Int) {
-    var showDatePicker by rememberSaveable { mutableStateOf(false)}
-    val months = listOf(
-        "JAN",
-        "FEV",
-        "MAR",
-        "ABR",
-        "MAI",
-        "JUN",
-        "JUL",
-        "AGO",
-        "SET",
-        "OUT",
-        "NOV",
-        "DEZ"
-    )
+    @Composable
+    fun DateReportSelect(
+        modifier: Modifier,
+        date: (String) -> Unit,
+        monthChange: (Int) -> Unit,
+        month: Int,
+        yearChange: (Int) -> Unit,
+        year: Int
+    ) {
+        var showDatePicker by rememberSaveable { mutableStateOf(false) }
+        val months = listOf(
+            "JAN",
+            "FEV",
+            "MAR",
+            "ABR",
+            "MAI",
+            "JUN",
+            "JUL",
+            "AGO",
+            "SET",
+            "OUT",
+            "NOV",
+            "DEZ"
+        )
 
-    if(showDatePicker){
-        CustomDatePicker(currentMonth = month,
+        if (showDatePicker) {
+            CustomDatePicker(currentMonth = month,
                 currentYear = year,
-            currentMonthChange = { newMonth ->
-                                monthChange(newMonth) },
-            currentYearChange = { newYear ->
-                                yearChange(newYear) },
-            onConfirmButton = { monthChild, yearChild ->
-                date("${yearChild}-${monthChild}")
+                currentMonthChange = { newMonth ->
+                    monthChange(newMonth)
+                },
+                currentYearChange = { newYear ->
+                    yearChange(newYear)
+                },
+                onConfirmButton = { monthChild, yearChild ->
+                    date("${yearChild}-${monthChild}")
+                    showDatePicker = false
+                }
+            ) {
                 showDatePicker = false
             }
+        }
+
+        Row(
+            modifier = modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            showDatePicker = false
-        }
-    }
-
-    Row(modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically) {
-        TextButton(onClick = { showDatePicker = true }) {
-            Text(text = "${months[month]}/${year}", color = MaterialTheme.colorScheme.onPrimary)
-        }
-    }
-}
-
-@Composable
-fun ShowAllIncomes(modifier: Modifier, navigateTo: () -> Unit, context: Context, dateStamp: String, limit: Int = 10) {
-    val income = Income()
-    val filterOption = listOf("Total", "Positivo", "Negativo")
-    val orderBy by remember { mutableStateOf("DESC") }
-
-    var offset by remember { mutableIntStateOf(0) }
-    var options by remember { mutableStateOf(false) }
-    var incomeToProcess by remember { mutableIntStateOf(0) }
-    var filter by remember { mutableStateOf(filterOption[0]) }
-
-    val incomesCount = income.getIncomesCount(context = context, idUser = null, filter = filter)
-    val incomes = income.getIncomes(context = context,
-        limit = limit,
-        offset = offset,
-        filter = filter,
-        timeStamp = dateStamp,
-        orderBy = orderBy)
-
-    Column(modifier = modifier.padding(0.dp, 6.dp)) {
-        Row(modifier = modifier
-            .fillMaxWidth()
-            .padding(0.dp, 0.dp, 10.dp, 0.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween) {
-            filterOption.forEach { option ->
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(selected = (filter == option), onClick = { filter = option },
-                        colors = RadioButtonColors(
-                            MaterialTheme.colorScheme.onPrimary,
-                            MaterialTheme.colorScheme.onPrimary,
-                            MaterialTheme.colorScheme.secondary,
-                            MaterialTheme.colorScheme.secondary
-                        )
-                    )
-                    Text(text = option)
-                }
+            TextButton(onClick = { showDatePicker = true }) {
+                Text(text = "${months[month]}/${year}", color = MaterialTheme.colorScheme.onPrimary)
             }
         }
-        if(incomes.isNotEmpty()) {
-            Column(modifier = modifier.verticalScroll(rememberScrollState())) {
-                incomes.forEach { income ->
-                    Card(
-                        modifier = modifier
-                            .fillMaxWidth()
-                            .heightIn(0.dp, 300.dp)
-                    ) {
-                        Row(
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun ShowAllIncomes(
+        modifier: Modifier,
+        navigateTo: () -> Unit,
+        dateStamp: String,
+        limit: Int = 10
+    ) {
+        val filterOption = listOf("Total", "Positivo", "Negativo")
+        val categories = reportCategory.getCategoriesByUser(Globals.getUser())
+        var orderBy by remember { mutableStateOf("DESC") }
+
+        var offset by remember { mutableIntStateOf(0) }
+        var options by remember { mutableStateOf(false) }
+        var incomeToProcess by remember { mutableIntStateOf(0) }
+        var filter by remember { mutableStateOf(filterOption[0]) }
+        var expandsFilter by remember { mutableStateOf(false) }
+        var filterByCategory by remember { mutableStateOf(false) }
+        var categoriesToShow by remember { mutableStateOf(arrayOf<Int>()) }
+
+        val incomesCount = reportIncome.getIncomesCount(filter = filter, categoriesToShow)
+        val incomes = reportIncome.getAllIncomes(
+            limit = limit,
+            offset = offset,
+            valueFilter = filter,
+            categoryFilter = categoriesToShow,
+            timeStamp = dateStamp,
+            orderBy = orderBy
+        )
+        
+        if (filterByCategory) {
+            AlertDialog(onDismissRequest = { filterByCategory = false },
+                title = { Text(text = "Filtro por categorias")},
+                text = { Column(modifier = modifier.width(200.dp)
+                    .heightIn(0.dp, 300.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally) {
+                    categories.forEach {category ->
+                        Row(modifier = modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(text = category.name, color = if(category.isDeleted) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground)
+                            Switch(checked = category.id in categoriesToShow,
+                                onCheckedChange = { categoriesToShow = if (category.id !in categoriesToShow) categoriesToShow.plus(category.id)
+                                else categoriesToShow.filter { it != category.id }.toTypedArray()} )
+                        }
+                    }
+                }},
+                confirmButton = { Button(onClick = { filterByCategory = false }) {
+                    Text(text = "Confirmar")
+                } })
+        }
+
+        Column {
+            Text(text = "Filtrar por:")
+            Row(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(0.dp, 0.dp, 10.dp, 0.dp)
+                    .height(50.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Row(modifier = modifier.fillMaxWidth(0.9f),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceEvenly) {
+                    ExposedDropdownMenuBox(
+                        expanded = expandsFilter,
+                        onExpandedChange = { expandsFilter = !expandsFilter }) {
+                        Text(
+                            modifier = modifier.menuAnchor(),
+                            text = filter
+                        )
+                        ExposedDropdownMenu(modifier = modifier.fillMaxWidth(),
+                            expanded = expandsFilter,
+                            onDismissRequest = { expandsFilter = false }) {
+                            filterOption.forEach { option ->
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    RadioButton(
+                                        selected = (filter == option),
+                                        onClick = { filter = option },
+                                        colors = RadioButtonColors(
+                                            MaterialTheme.colorScheme.onPrimary,
+                                            MaterialTheme.colorScheme.onPrimary,
+                                            MaterialTheme.colorScheme.secondary,
+                                            MaterialTheme.colorScheme.secondary
+                                        )
+                                    )
+                                    Text(text = option)
+                                }
+                            }
+                        }
+                    }
+
+                    VerticalDivider(
+                        modifier = modifier.height(20.dp),
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+
+                    TextButton(onClick = { filterByCategory = true }) {
+                        Text(
+                            text = "Categorias" + if (categoriesToShow.isNotEmpty()) "(${categoriesToShow.size})" else "",
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+
+                    VerticalDivider(modifier = modifier.height(20.dp),
+                        color = MaterialTheme.colorScheme.onPrimary)
+                }
+
+                IconButton(onClick = { orderBy = if (orderBy == "DESC") "ASC" else "DESC"}) {
+                    Icon(imageVector = if (orderBy == "DESC") Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown, contentDescription = null)
+                }
+            }
+            if (incomes.isNotEmpty()) {
+                Column(modifier = modifier.verticalScroll(rememberScrollState())) {
+                    incomes.forEach { income ->
+                        Card(
                             modifier = modifier
                                 .fillMaxWidth()
+                                .heightIn(0.dp, 300.dp)
                         ) {
-                            Column {
-                                Text(
-                                    modifier = modifier.padding(8.dp, 4.dp),
-                                    text = "Nota nº ${income["ID"]}"
-                                )
-                                Text(
-                                    modifier = modifier.padding(8.dp, 4.dp),
-                                    text = "Item: ${income["Name"]}"
-                                )
-                                Text(
-                                    modifier = modifier.padding(8.dp, 4.dp),
-                                    text = "Preço: ${income["Value"]}",
-                                    color = if (income["Profit"] as Boolean) positiveLight else negativeLight
-                                )
-                                Text(
-                                    modifier = modifier.padding(8.dp, 4.dp),
-                                    text = "Data: ${
-                                        SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(
-                                            income["Date"]
-                                        )
-                                    }"
-                                )
-                                Text(
-                                    modifier = modifier.padding(8.dp, 4.dp),
-                                    text = "Categoria: ${income.getOrDefault("CategoryName", "")}"
-                                )
-                                Text(
-                                    modifier = modifier
-                                        .padding(8.dp, 4.dp)
-                                        .verticalScroll(rememberScrollState()),
-                                    text = "Descrição: ${income.getOrDefault("Description", "")}"
+                            Row(
+                                modifier = modifier
+                                    .fillMaxWidth()
+                            ) {
+                                Column {
+                                    Text(
+                                        modifier = modifier.padding(8.dp, 4.dp),
+                                        text = "Nota nº ${income["ID"]}"
+                                    )
+                                    Text(
+                                        modifier = modifier.padding(8.dp, 4.dp),
+                                        text = "Item: ${income["Name"]}"
+                                    )
+                                    Text(
+                                        modifier = modifier.padding(8.dp, 4.dp),
+                                        text = "Preço: ${income["Value"]}",
+                                        color = if (income["Profit"] as Boolean) positiveLight else negativeLight
+                                    )
+                                    Text(
+                                        modifier = modifier.padding(8.dp, 4.dp),
+                                        text = "Data: ${
+                                            SimpleDateFormat(
+                                                "dd/MM/yyyy",
+                                                Locale.getDefault()
+                                            ).format(
+                                                income["Date"]
+                                            )
+                                        }"
+                                    )
+                                    Text(
+                                        modifier = modifier.padding(8.dp, 4.dp),
+                                        text = "Categoria: ${
+                                            income.getOrDefault(
+                                                "CategoryName",
+                                                ""
+                                            )
+                                        }"
+                                    )
+                                    Text(
+                                        modifier = modifier
+                                            .padding(8.dp, 4.dp)
+                                            .verticalScroll(rememberScrollState()),
+                                        text = "Descrição: ${
+                                            income.getOrDefault(
+                                                "Description",
+                                                ""
+                                            )
+                                        }"
+                                    )
+                                }
+                                Spacer(modifier = modifier.weight(1f))
+                                IconButton(onClick = {
+                                    options = true
+                                    incomeToProcess = income["ID"] as Int
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.MoreVert,
+                                        contentDescription = "Deletar"
+                                    )
+                                }
+                            }
+                        }
+                        Spacer(modifier = modifier.height(10.dp))
+                    }
+                    if (incomesCount > 10) {
+                        Row(modifier = modifier
+                            .fillMaxWidth()
+                            .padding(10.dp)) {
+                            IconButton(onClick = { offset -= 10 },
+                                enabled = offset >= 10) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                                    contentDescription = "Anterior"
                                 )
                             }
                             Spacer(modifier = modifier.weight(1f))
-                            IconButton(onClick = {
-                                options = true
-                                incomeToProcess = income["ID"] as Int
-                            }) {
+
+                            IconButton(onClick = { offset += 10 },
+                                enabled = incomes.count() == 10) {
                                 Icon(
-                                    imageVector = Icons.Filled.MoreVert,
-                                    contentDescription = "Deletar"
+                                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                    contentDescription = "Proximo"
                                 )
                             }
                         }
                     }
-                    Spacer(modifier = modifier.height(10.dp))
                 }
-            }
-        }else NoIncomesMessage(modifier)
+            } else HomeCompose(reportContext).NoIncomesMessage(modifier)
 
-        if (options) {
-            OptionsIncomeAlert(modifier,
-                incomeToProcess,
-                navigateTo,
-                context
-            ) { options = false }
-        }
-
-        if (incomesCount > 10){
-            Row {
-                if(offset >= 10) {
-                    IconButton(modifier = modifier.bounceClick(),
-                        onClick = { offset -= 10 }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                            contentDescription = "Anterior"
-                        )
-                    }
-                }
-                Spacer(modifier = modifier.weight(1f))
-
-
-                if (incomes.count() == 10) {
-                    IconButton(onClick = { offset += 10 }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = "Proximo"
-                        )
-                    }
-                }
+            if (options) {
+                OptionsIncomeAlert(
+                    modifier,
+                    incomeToProcess,
+                    navigateTo,
+                ) { options = false }
             }
         }
     }
-}
 
-@Composable
-fun OptionsIncomeAlert(modifier: Modifier = Modifier, id: Int, navigateToEdit: () -> Unit, context: Context, dismiss: () -> Unit ) {
-    val income = Income()
-    var delete by remember { mutableStateOf(false) }
-    AlertDialog(onDismissRequest = dismiss,
-        text = { Text(text = "O que deseja fazer com a nota Nº${id}") },
-        confirmButton = {
-            Row(modifier = modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center) {
-                Button(onClick = navigateToEdit) {
-                    Text(text = "Editar")
-                }
-                Spacer(modifier = modifier.width(10.dp))
-                Button(onClick = {delete = true}) {
-                    Text(text = "Deletar")
-                }
-            }
-        }
-    )
-
-    if (delete) {
+    @Composable
+    fun OptionsIncomeAlert(
+        modifier: Modifier = Modifier,
+        id: Int,
+        navigateToEdit: () -> Unit,
+        dismiss: () -> Unit
+    ) {
+        var delete by remember { mutableStateOf(false) }
         AlertDialog(onDismissRequest = dismiss,
-            text = { Text(text = "Deseja realmente deletar a nota fiscal Nº ${id}?") },
+            text = { Text(text = "O que deseja fazer com a nota Nº${id}") },
             confirmButton = {
-                Button(onClick = { if (income.deleteIncome(context, null, id))
-                    dismiss()
-                }) {
-                    Text(text = "Deletar")
-                }
-            },
-            dismissButton = { Button(onClick = dismiss) {
-                Text(text = "Cancelar")
-            } })
-    }
-}
-
-@Composable
-fun IncomeStatus(modifier: Modifier, context: Context, timeStamp: String) {
-    val income = Income()
-    val incomeStatus by remember { mutableStateOf(income.getIncomeTotals(context, timeStamp)) }
-
-    Column(modifier = modifier.padding(0.dp, 12.dp)) {
-        Row(
-            modifier = modifier
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-            incomeStatus.forEach { status ->
-                val textColor = when(status.key){
-                    "Positivo" -> positiveLight
-                    "Negativo" -> negativeLight
-                    else -> MaterialTheme.colorScheme.onBackground}
-                Column(
-                    modifier = modifier
-                        .background(
-                            MaterialTheme.colorScheme.onPrimary,
-                            shape = RoundedCornerShape(10.dp)
-                        )
-                        .size(120.dp, 100.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Row(
+                    modifier = modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
                 ) {
-                    Row(modifier = modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Start) {
-                        Text(text = "R$", modifier = modifier.padding(15.dp, 0.dp), color = textColor)
+                    Button(onClick = navigateToEdit) {
+                        Text(text = "Editar")
                     }
-                    Text(text = status.value, color = textColor)
-                    Text(text = status.key, color = textColor)
+                    Spacer(modifier = modifier.width(10.dp))
+                    Button(onClick = { delete = true }) {
+                        Text(text = "Deletar")
+                    }
+                }
+            }
+        )
+
+        if (delete) {
+            AlertDialog(onDismissRequest = dismiss,
+                text = { Text(text = "Deseja realmente deletar a nota fiscal Nº ${id}?") },
+                confirmButton = {
+                    Button(onClick = {
+                        if (reportIncome.deleteIncome(id))
+                            dismiss()
+                    }) {
+                        Text(text = "Deletar")
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = dismiss) {
+                        Text(text = "Cancelar")
+                    }
+                })
+        }
+    }
+
+    @Composable
+    fun IncomeStatus(modifier: Modifier, timeStamp: String) {
+        val incomeStatus by remember { mutableStateOf(reportIncome.getIncomeTotals(timeStamp)) }
+
+        Column(modifier = modifier.padding(0.dp, 12.dp)) {
+            Row(
+                modifier = modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                incomeStatus.forEach { status ->
+                    val textColor = when (status.key) {
+                        "Positivo" -> positiveLight
+                        "Negativo" -> negativeLight
+                        else -> MaterialTheme.colorScheme.onBackground
+                    }
+                    Column(
+                        modifier = modifier
+                            .background(
+                                MaterialTheme.colorScheme.onPrimary,
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            .size(120.dp, 100.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Row(
+                            modifier = modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Start
+                        ) {
+                            Text(
+                                text = "R$",
+                                modifier = modifier.padding(15.dp, 0.dp),
+                                color = textColor
+                            )
+                        }
+                        Text(text = status.value, color = textColor)
+                        Text(text = status.key, color = textColor)
+                    }
                 }
             }
         }

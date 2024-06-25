@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
@@ -41,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -54,21 +57,43 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.financeback.classes.Income
-import com.example.financeback.ui.theme.AppTheme
 import com.example.financeback.classes.MenuItem
 import com.example.financeback.classes.User
 import com.example.financeback.classes.UserInfo
 import com.example.financeback.screens.LoginScreen
 import com.example.financeback.screens.Screen
-import com.example.financeback.screens.compose.ConfigurationsScreen
-import com.example.financeback.screens.compose.EditScreen
-import com.example.financeback.screens.compose.HomeScreen
-import com.example.financeback.screens.compose.IncomeScreen
-import com.example.financeback.screens.compose.ProfileScreen
-import com.example.financeback.screens.compose.ReportScreen
+import com.example.financeback.screens.compose.ConfigurationsCompose
+import com.example.financeback.screens.compose.EditCompose
+import com.example.financeback.screens.compose.HomeCompose
+import com.example.financeback.screens.compose.IncomeCompose
+import com.example.financeback.screens.compose.ProfileCompose
+import com.example.financeback.screens.compose.ReportCompose
+import com.example.financeback.screens.compose.StockCompose
+import com.example.financeback.ui.theme.AppTheme
 import com.example.financeback.ui.theme.negativeLight
 import com.example.financeback.utils.Utils
 import kotlinx.coroutines.launch
+
+object Globals{
+    private var userID: Int = 0
+    private var isStockEnabled: Boolean = true
+
+    fun setUser(userID: Int) {
+        this.userID = userID
+    }
+
+    fun getUser(): Int {
+        return this.userID
+    }
+
+    fun setStock(isStockEnabled: Boolean) {
+        this.isStockEnabled = isStockEnabled
+    }
+
+    fun getStock(): Boolean {
+        return this.isStockEnabled
+    }
+}
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,19 +101,19 @@ class MainActivity : AppCompatActivity() {
 
         supportActionBar?.hide()
 
-        val userID = intent.getIntExtra("UserID", -1)
-
+        Globals.setUser(intent.getIntExtra("UserID", -1))
         setContent {
             AppTheme(false) {
-                FinanceBackScreen(userID = userID, context = this)
+                FinanceBackScreen()
             }
         }
     }
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FinanceBackScreen(modifier: Modifier = Modifier, userID: Int, context: Context) {
+fun FinanceBackScreen(modifier: Modifier = Modifier) {
     val user = User()
+    val context = LocalContext.current
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
     val items = listOf(Screen.Home, Screen.Income, Screen.Report)
@@ -101,7 +126,7 @@ fun FinanceBackScreen(modifier: Modifier = Modifier, userID: Int, context: Conte
     var helpClicked by remember { mutableStateOf(false) }
 
     if (updatedUser){
-        userInfo = user.getUserByID(context, userID)
+        userInfo = user.getUserByID(context, Globals.getUser())
         updatedUser = false
     }
     
@@ -162,6 +187,20 @@ fun FinanceBackScreen(modifier: Modifier = Modifier, userID: Int, context: Conte
                             screenTitle = Screen.Settings.title}
                     ),
                     MenuItem(
+                        id = Screen.Stock.route,
+                        title = Screen.Stock.title,
+                        contentDescription = Screen.Stock.description,
+                        icon = Screen.Stock.icon,
+                        sensitiveItem = false,
+                        onClick = {navController.navigate(Screen.Stock.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                        }
+                        scope.launch{drawerState.close() }
+                        screenTitle = Screen.Settings.title}
+                    ),
+                    MenuItem(
                         id = Screen.Help.route,
                         title = Screen.Help.title,
                         contentDescription = Screen.Help.description,
@@ -202,10 +241,7 @@ fun FinanceBackScreen(modifier: Modifier = Modifier, userID: Int, context: Conte
                     title = { Text(screenTitle) },
                     navigationIcon = {
                         IconButton(onClick = {scope.launch{ drawerState.open() }}) {
-                            Image(
-                                painterResource(R.drawable.user), "Perfil",
-                                modifier.padding(10.dp, 0.dp)
-                            )
+                            Icon(imageVector = Icons.Filled.Menu, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
                         }
                     }
                 )
@@ -250,10 +286,10 @@ fun FinanceBackScreen(modifier: Modifier = Modifier, userID: Int, context: Conte
                     Modifier.padding(innerPadding)
                 ) {
                     composable(Screen.Home.route) {
-                        HomeScreen(navController = navController)
+                        HomeCompose(context).HomeScreen(navController = navController)
                     }
                     composable(Screen.Report.route) {
-                        ReportScreen(navigateToEdit = {
+                        ReportCompose(context).ReportScreen(navigateToEdit = {
                             navController.navigate(Screen.Income.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
@@ -264,22 +300,25 @@ fun FinanceBackScreen(modifier: Modifier = Modifier, userID: Int, context: Conte
                         }
                         )
                     }
-                    composable(Screen.Income.route) { IncomeScreen(userID = userID) }
+                    composable(Screen.Income.route) { IncomeCompose(context).IncomeScreen() }
 
                     composable("${Screen.Edit.route}/{incomeID}",
                         listOf(navArgument(name = "incomeID"){
                             type = NavType.IntType
                         })) { bacStackEntry ->
-                        bacStackEntry.arguments?.let { EditScreen(income = Income().getIncomeByID(context, it.getInt("incomeID")), userID = userID, navController = navController) }
+                        bacStackEntry.arguments?.let { EditCompose(context).EditScreen(incomeInfo = Income(context, Globals.getUser()).getIncomeByID(it.getInt("incomeID")), navController = navController) }
                         screenTitle = Screen.Edit.title}
 
                     composable(Screen.Profile.route) {
-                        ProfileScreen(
+                        ProfileCompose(context).ProfileScreen(
                             userInfo = userInfo,
                             updatedUser = { updatedUser = it })
                     }
                     composable(Screen.Settings.route) {
-                        ConfigurationsScreen()
+                        ConfigurationsCompose().ConfigurationsScreen()
+                    }
+                    composable(Screen.Stock.route) {
+                        StockCompose(context).StockScreen()
                     }
                 }
             }
@@ -294,7 +333,7 @@ fun DrawerHeader(modifier: Modifier, userInfo: UserInfo) {
         .padding(24.dp),
         contentAlignment = Alignment.Center){
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Image(painter = painterResource(userInfo.iconImage), contentDescription = null)
+            Image(painter = painterResource(R.drawable.baseline_person_48), contentDescription = null)
             Spacer(modifier.height(10.dp))
             Text(text = userInfo.fullName, fontSize = 18.sp)
             Text(text = userInfo.userName, fontSize = 12.sp)

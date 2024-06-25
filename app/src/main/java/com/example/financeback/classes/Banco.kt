@@ -42,10 +42,11 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COLUMN_NAME = "CategoryName"
         const val COLUMN_PROFIT = "Profit"
         const val COLUMN_DEFAULT_CATEGORY = "DefaultCategory"
+        const val COLUMN_IS_DELETED = "IsDeleted"
     }
     companion object {
         const val DATABASE_NAME = "FINANCEBACK"
-        const val DATABASE_VERSION = 19
+        const val DATABASE_VERSION = 20
     }
 
     private val CREATE_CATEGORIES =
@@ -55,6 +56,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 "${CATEGORIES.COLUMN_NAME} TEXT DEFAULT NULL," +
                 "${CATEGORIES.COLUMN_PROFIT} BOOLEAN DEFAULT FALSE," +
                 "${CATEGORIES.COLUMN_DEFAULT_CATEGORY} BOOLEAN DEFAULT FALSE," +
+                "${CATEGORIES.COLUMN_IS_DELETED} BOOLEAN DEFAULT FALSE," +
                 "FOREIGN KEY (${CATEGORIES.COLUMN_USER_ID})" +
                 "REFERENCES ${USERS.TABLE_NAME}(${USERS.COLUMN_ID}))"
 

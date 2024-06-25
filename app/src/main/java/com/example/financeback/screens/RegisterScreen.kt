@@ -10,14 +10,14 @@ import androidx.activity.compose.setContent
 import com.example.financeback.MainActivity
 import com.example.financeback.classes.DatabaseHelper
 import com.example.financeback.classes.User
-import com.example.financeback.screens.compose.Register
+import com.example.financeback.screens.compose.RegisterCompose
 
 class RegisterScreen: ComponentActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
-            Register(activity = this)
+            RegisterCompose(this).Register(activity = this)
         }
     }
 

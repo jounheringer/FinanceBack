@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.financeback.classes.Income
+import com.example.financeback.controllers.IncomeController
 import com.example.financeback.screens.Screen
 import com.example.financeback.ui.theme.ExtendedColorScheme
 import com.example.financeback.ui.theme.negativeLight
@@ -51,143 +52,161 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-@Composable
-fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
-    val calendar = Calendar.getInstance()
-    val date = "${calendar.get(Calendar.YEAR)}-${NumberFormatter().decimalFormatter((calendar.get(Calendar.MONTH)+1).toString())}"
-    val context = LocalContext.current
-    Column(
-        modifier
-            .fillMaxHeight()
-            .fillMaxWidth()
-            .padding(8.dp),
-        verticalArrangement = Arrangement.SpaceBetween
-    ) {
-        IncomeStatus(modifier, context, date)
-        RecentIncomes(modifier, context, navController, date)
-    }
-}
-
-@Composable
-fun RecentIncomes(modifier: Modifier = Modifier, context: Context, navController: NavController, date: String) {
-    val income = Income()
-    val state = rememberScrollState()
-    val recentIncomes = income.getIncomes(context, 5, timeStamp = date)
-
-    var options by remember { mutableStateOf(false) }
-    var incomeToProcess by remember { mutableIntStateOf(0) }
-    LaunchedEffect(Unit) { state.animateScrollTo(100)}
-
-    Column(
-        modifier
-            .height(400.dp)) {
-        Row(modifier = modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center){
-            Text(text = "Notas recentes",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold)
+class HomeCompose (context: Context) {
+    private val homeContext = context
+    private val income = IncomeController(context)
+    @Composable
+    fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
+        val calendar = Calendar.getInstance()
+        val date = "${calendar.get(Calendar.YEAR)}-${
+            NumberFormatter().decimalFormatter(
+                (calendar.get(Calendar.MONTH) + 1).toString()
+            )
+        }"
+        Column(
+            modifier
+                .fillMaxHeight()
+                .fillMaxWidth()
+                .padding(8.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            ReportCompose(homeContext).IncomeStatus(modifier, date)
+            RecentIncomes(modifier, navController, date)
         }
-        if (recentIncomes.isNotEmpty()) {
-            Column(modifier = modifier.verticalScroll(state)) {
-                recentIncomes.forEach { income ->
-                    var expand by remember { mutableStateOf(false) }
-                    Spacer(modifier = modifier.height(10.dp))
-                    Column(
-                        modifier
-                            .fillMaxWidth()
-                            .heightIn(0.dp, 300.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.background,
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically,
-                            modifier = modifier
-                                .padding(10.dp, 5.dp)
-                                .height(30.dp)
-                                .clickable {
-                                    expand = !expand
+    }
+
+    @Composable
+    fun RecentIncomes(
+        modifier: Modifier = Modifier,
+        navController: NavController,
+        date: String
+    ) {
+        val state = rememberScrollState()
+        val recentIncomes = income.getAllIncomes(limit = 5, timeStamp = date)
+
+        var options by remember { mutableStateOf(false) }
+        var incomeToProcess by remember { mutableIntStateOf(0) }
+        LaunchedEffect(Unit) { state.animateScrollTo(100) }
+
+        Column(
+            modifier
+                .height(400.dp)
+        ) {
+            Row(
+                modifier = modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Notas recentes",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            if (recentIncomes.isNotEmpty()) {
+                Column(modifier = modifier.verticalScroll(state)) {
+                    recentIncomes.forEach { income ->
+                        var expand by remember { mutableStateOf(false) }
+                        Spacer(modifier = modifier.height(10.dp))
+                        Column(
+                            modifier
+                                .fillMaxWidth()
+                                .heightIn(0.dp, 300.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.background,
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically,
+                                modifier = modifier
+                                    .padding(10.dp, 5.dp)
+                                    .height(30.dp)
+                                    .clickable {
+                                        expand = !expand
+                                    }) {
+                                Row {
+                                    Text(
+                                        text = "${income["Name"]}: ",
+                                        color = MaterialTheme.colorScheme.onBackground
+                                    )
+                                    Text(
+                                        text = "R$${income["Value"]}",
+                                        color = if (income["Profit"] as Boolean) positiveLight else negativeLight
+                                    )
+                                }
+                                Spacer(modifier = Modifier.weight(1f))
+                                IconButton(onClick = {
+                                    options = true
+                                    incomeToProcess = income["ID"] as Int
                                 }) {
-                            Row {
-                                Text(
-                                    text = "${income["Name"]}: ",
-                                    color = MaterialTheme.colorScheme.onBackground
-                                )
-                                Text(
-                                    text = "R$${income["Value"]}",
-                                    color = if (income["Profit"] as Boolean) positiveLight else negativeLight
-                                )
-                            }
-                            Spacer(modifier = Modifier.weight(1f))
-                            IconButton(onClick = {
-                                options = true
-                                incomeToProcess = income["ID"] as Int
-                            }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.MoreVert,
+                                        contentDescription = "Opções",
+                                        tint = MaterialTheme.colorScheme.onBackground
+                                    )
+                                }
                                 Icon(
-                                    imageVector = Icons.Filled.MoreVert,
-                                    contentDescription = "Opções",
+                                    imageVector = if (!expand) Icons.Filled.KeyboardArrowDown else Icons.Filled.KeyboardArrowUp,
+                                    contentDescription = "Mais informações",
                                     tint = MaterialTheme.colorScheme.onBackground
                                 )
                             }
-                            Icon(
-                                imageVector = if (!expand) Icons.Filled.KeyboardArrowDown else Icons.Filled.KeyboardArrowUp,
-                                contentDescription = "Mais informações",
-                                tint = MaterialTheme.colorScheme.onBackground
-                            )
-                        }
-                        if (expand) {
-                            Column(modifier = modifier.padding(10.dp, 5.dp)) {
-                                Text(
-                                    text = "Nota Nº ${income["ID"]}",
-                                    color = MaterialTheme.colorScheme.onBackground
-                                )
-                                Text(
-                                    text = SimpleDateFormat(
-                                        "dd/MM/yyyy",
-                                        Locale.getDefault()
-                                    ).format(
-                                        income["Date"]
-                                    ), color = MaterialTheme.colorScheme.onBackground
-                                )
-                                Text(
-                                    modifier = modifier.verticalScroll(rememberScrollState()),
-                                    text = "Descrição: ${income["Description"]}",
-                                    color = MaterialTheme.colorScheme.onBackground
-                                )
-                                Text(
-                                    text = "Categoria: ${income["CategoryName"]}",
-                                    color = MaterialTheme.colorScheme.onBackground
-                                )
+                            if (expand) {
+                                Column(modifier = modifier.padding(10.dp, 5.dp)) {
+                                    Text(
+                                        text = "Nota Nº ${income["ID"]}",
+                                        color = MaterialTheme.colorScheme.onBackground
+                                    )
+                                    Text(
+                                        text = SimpleDateFormat(
+                                            "dd/MM/yyyy",
+                                            Locale.getDefault()
+                                        ).format(
+                                            income["Date"]
+                                        ), color = MaterialTheme.colorScheme.onBackground
+                                    )
+                                    Text(
+                                        modifier = modifier.verticalScroll(rememberScrollState()),
+                                        text = "Descrição: ${income["Description"]}",
+                                        color = MaterialTheme.colorScheme.onBackground
+                                    )
+                                    Text(
+                                        text = "Categoria: ${income["CategoryName"]}",
+                                        color = MaterialTheme.colorScheme.onBackground
+                                    )
+                                }
                             }
-                        }
 
-                        if (options) {
-                            OptionsIncomeAlert(modifier,
-                                incomeToProcess,
-                                {
-                                    navController.navigate("${Screen.Edit.route}/$incomeToProcess") {
-                                        popUpTo(navController.graph.findStartDestination().id) {
-                                            saveState = true
+                            if (options) {
+                                ReportCompose(homeContext).OptionsIncomeAlert(modifier,
+                                    incomeToProcess,
+                                    {
+                                        navController.navigate("${Screen.Edit.route}/$incomeToProcess") {
+                                            popUpTo(navController.graph.findStartDestination().id) {
+                                                saveState = true
+                                            }
                                         }
-                                    }
-                                },
-                                context,
-                                { options = false })
+                                    },
+                                    { options = false })
+                            }
                         }
                     }
                 }
-            }
-        }else NoIncomesMessage(modifier)
+            } else NoIncomesMessage(modifier)
+        }
     }
-}
 
-@Composable
-fun NoIncomesMessage(modifier: Modifier){
-    Row(modifier = modifier
-        .fillMaxWidth()
-        .padding(15.dp),
-        horizontalArrangement = Arrangement.Center) {
-        Text(text = "Nenhuma nota criada aperte no icone '+' para adicionar uma nova nota",
-            textAlign = TextAlign.Center)
+    @Composable
+    fun NoIncomesMessage(modifier: Modifier) {
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(15.dp),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Nenhuma nota criada aperte no icone '+' para adicionar uma nova nota",
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
