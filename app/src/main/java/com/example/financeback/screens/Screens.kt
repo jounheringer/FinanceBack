@@ -9,8 +9,12 @@ import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
+import com.example.financeback.R
 
 sealed class Screen(val route: String, val description: String, val icon: ImageVector, val title: String) {
     object Home : Screen("Home", "Home Screen", Icons.Filled.Home, "Bem Vindo")
@@ -22,5 +26,6 @@ sealed class Screen(val route: String, val description: String, val icon: ImageV
     object Help : Screen("Help", "Help Screen", Icons.Filled.Info, "Ajuda")
     object LogOut : Screen("LogOut", "LogOut Screen", Icons.AutoMirrored.Filled.ExitToApp, "Deslogar")
     object Restart : Screen("Restart", "Restart Screen", Icons.Filled.Warning, "Restaurar App")
+    object Stock : Screen("Stock", "Stock Screen", Icons.Filled.ShoppingCart, "Estoque")
 //    object Goal : Screen("Goal", "Goals Screen", Icons.Filled.Person, "Gerenciar Metas")
 }

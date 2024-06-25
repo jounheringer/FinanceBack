@@ -57,7 +57,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.financeback.classes.Income
-import com.example.financeback.ui.theme.AppTheme
 import com.example.financeback.classes.MenuItem
 import com.example.financeback.classes.User
 import com.example.financeback.classes.UserInfo
@@ -69,12 +68,15 @@ import com.example.financeback.screens.compose.HomeCompose
 import com.example.financeback.screens.compose.IncomeCompose
 import com.example.financeback.screens.compose.ProfileCompose
 import com.example.financeback.screens.compose.ReportCompose
+import com.example.financeback.screens.compose.StockCompose
+import com.example.financeback.ui.theme.AppTheme
 import com.example.financeback.ui.theme.negativeLight
 import com.example.financeback.utils.Utils
 import kotlinx.coroutines.launch
 
 object Globals{
     private var userID: Int = 0
+    private var isStockEnabled: Boolean = true
 
     fun setUser(userID: Int) {
         this.userID = userID
@@ -82,6 +84,14 @@ object Globals{
 
     fun getUser(): Int {
         return this.userID
+    }
+
+    fun setStock(isStockEnabled: Boolean) {
+        this.isStockEnabled = isStockEnabled
+    }
+
+    fun getStock(): Boolean {
+        return this.isStockEnabled
     }
 }
 
@@ -175,6 +185,20 @@ fun FinanceBackScreen(modifier: Modifier = Modifier) {
                                 }
                         scope.launch{drawerState.close() }
                             screenTitle = Screen.Settings.title}
+                    ),
+                    MenuItem(
+                        id = Screen.Stock.route,
+                        title = Screen.Stock.title,
+                        contentDescription = Screen.Stock.description,
+                        icon = Screen.Stock.icon,
+                        sensitiveItem = false,
+                        onClick = {navController.navigate(Screen.Stock.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                        }
+                        scope.launch{drawerState.close() }
+                        screenTitle = Screen.Settings.title}
                     ),
                     MenuItem(
                         id = Screen.Help.route,
@@ -292,6 +316,9 @@ fun FinanceBackScreen(modifier: Modifier = Modifier) {
                     }
                     composable(Screen.Settings.route) {
                         ConfigurationsCompose().ConfigurationsScreen()
+                    }
+                    composable(Screen.Stock.route) {
+                        StockCompose(context).StockScreen()
                     }
                 }
             }
